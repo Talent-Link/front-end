@@ -36,7 +36,6 @@ const Footer: React.FC = () => {
               <li><a href="#" className="hover:text-pink-400 transition-colors">Funcionalidades</a></li>
               <li><a href="#" className="hover:text-pink-400 transition-colors">Preços</a></li>
               <li><a href="#" className="hover:text-pink-400 transition-colors">Demonstração</a></li>
-              <li><a href="#" className="hover:text-pink-400 transition-colors">API</a></li>
             </ul>
           </div>
           
@@ -55,16 +54,13 @@ const Footer: React.FC = () => {
             <ul className="space-y-3">
               <li className="flex items-center gap-2">
                 <Mail size={18} className="text-gray-400" />
-                <span>contato@talentlink.com.br</span>
+                <span>talentlink1234@gmail.com</span>
               </li>
               <li className="flex items-center gap-2">
                 <Phone size={18} className="text-gray-400" />
                 <span>+55 (11) 4321-1234</span>
               </li>
-              <li className="flex items-start gap-2">
-                <MapPin size={18} className="text-gray-400 mt-1 flex-shrink-0" />
-                <span>Av. Paulista, 1000 - Bela Vista, São Paulo - SP, 01310-100</span>
-              </li>
+           
             </ul>
           </div>
         </div>

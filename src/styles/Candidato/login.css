@@ -1,0 +1,56 @@
+/* TalentLinkLogin.css */
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #1a202c;
+  color: #fff;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  background-color: none;
+  border-radius: 16px;
+}
+
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.login-icon {
+  width: 64px;
+  height: 64px;
+  background-color: #ed64a6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ed64a6;
+}
+
+.login-subtitle {
+  font-size: 0.875rem;
+  color: #a0aec0;
+}
+
+.login-button {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.login-footer {
+  font-size: 0.75rem;
+  color: #a0aec0;
+  text-align: center;
+}

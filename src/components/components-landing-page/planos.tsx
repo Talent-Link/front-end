@@ -1,7 +1,7 @@
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
 
-const CallToAction: React.FC = () => {
+const planos: React.FC = () => {
   return (
     <section className="py-20 bg-gradient-to-r from-gray-900 to-purple-900 text-white">
       <div className="container mx-auto px-4 md:px-6">
@@ -85,4 +85,4 @@ const CallToAction: React.FC = () => {
   );
 };
 
-export default CallToAction;
+export default planos;

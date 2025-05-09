@@ -1,12 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
-import Hero from './components/Hero';
-import Highlights from './components/Highlights';
-import Demo from './components/Demo';
-import Features from './components/Features';
-import Comparison from './components/Comparison';
-import CallToAction from './components/CallToAction';
-import Footer from './components/Footer';
+import Header from './components/components-landing-page/Header';
+import Hero from './components/components-landing-page/telaInicial';
+import Highlights from './components/components-landing-page/Highlights';
+import Demo from './components/components-landing-page/Demo';
+import Features from './components/components-landing-page/funcionalidades';
+import Comparison from './components/components-landing-page/diferencial';
+import CallToAction from './components/components-landing-page/planos';
+import Footer from './components/components-landing-page/Footer';
 import TalentLinkLogin from './pages/Candidato/loginCandidato';
 
 function App() {

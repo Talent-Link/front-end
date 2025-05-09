@@ -24,7 +24,7 @@ const ComparisonItem: React.FC<ComparisonItemProps> = ({ title, traditional, wit
   );
 };
 
-const Comparison: React.FC = () => {
+const diferencial: React.FC = () => {
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-4 md:px-6">
@@ -104,4 +104,4 @@ const Comparison: React.FC = () => {
   );
 };
 
-export default Comparison;
+export default diferencial;

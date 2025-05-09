@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Hero: React.FC = () => {
+const TelaInicial: React.FC = () => {
   return (
     <section className="relative pt-24 md:pt-36 pb-20 bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="container mx-auto px-4 md:px-6">
@@ -41,4 +41,4 @@ const Hero: React.FC = () => {
   );
 };
 
-export default Hero;
+export default TelaInicial;

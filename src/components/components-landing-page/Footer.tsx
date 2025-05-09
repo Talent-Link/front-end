@@ -15,12 +15,7 @@ const Footer: React.FC = () => {
               Transformando o recrutamento para pequenas e médias empresas com tecnologia inteligente.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">
-                <Facebook size={20} />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">
-                <Twitter size={20} />
-              </a>
+             
               <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">
                 <Linkedin size={20} />
               </a>
@@ -44,7 +39,6 @@ const Footer: React.FC = () => {
             <ul className="space-y-2">
               <li><a href="#" className="hover:text-pink-400 transition-colors">Sobre Nós</a></li>
               <li><a href="#" className="hover:text-pink-400 transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-pink-400 transition-colors">Carreiras</a></li>
               <li><a href="#" className="hover:text-pink-400 transition-colors">Contato</a></li>
             </ul>
           </div>
@@ -67,7 +61,7 @@ const Footer: React.FC = () => {
         
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-500 mb-4 md:mb-0">
-            &copy; {new Date().getFullYear()} TalentLink. Todos os direitos reservados.
+            &copy; {new Date().getFullYear()} TalentLink. Developed by: Filipi Dantas.
           </p>
           <div className="flex space-x-6">
             <a href="#" className="text-sm text-gray-500 hover:text-pink-400 transition-colors">Termos de Serviço</a>

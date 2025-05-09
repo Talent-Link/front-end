@@ -27,7 +27,7 @@ const Header: React.FC = () => {
           
           <div className="hidden md:flex items-center space-x-8">
             <a href="#features" className="font-medium text-gray-700 hover:text-purple-600 transition-colors">Caracteristicas</a>
-            <a href="#testimonials" className="font-medium text-gray-700 hover:text-purple-600 transition-colors">Testemunhas</a>
+            <a href="#Diferencial" className="font-medium text-gray-700 hover:text-purple-600 transition-colors">Diferencial</a>
             <a href="#demo" className="font-medium text-gray-700 hover:text-purple-600 transition-colors">Demonstração</a>
             <a href="#contact" className="font-medium text-gray-700 hover:text-purple-600 transition-colors">Contato</a>
             <button className="px-5 py-2 rounded-full font-medium bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:shadow-lg transform hover:-translate-y-0.5 transition-all">
@@ -45,7 +45,7 @@ const Header: React.FC = () => {
       <div className={`md:hidden ${isOpen ? 'block' : 'hidden'} bg-white shadow-lg`}>
         <div className="px-4 py-5 space-y-5">
           <a href="#features" className="block font-medium text-gray-700 hover:text-purple-600">Caracteristicas</a>
-          <a href="#testimonials" className="block font-medium text-gray-700 hover:text-purple-600">Testemunhas</a>
+          <a href="#Diferencial" className="block font-medium text-gray-700 hover:text-purple-600">Diferencial</a>
           <a href="#demo" className="block font-medium text-gray-700 hover:text-purple-600">Demonstração</a>
           <a href="#contact" className="block font-medium text-gray-700 hover:text-purple-600">Contatos</a>
           <button className="w-full px-5 py-2 rounded-full font-medium bg-gradient-to-r from-pink-500 to-purple-600 text-white">

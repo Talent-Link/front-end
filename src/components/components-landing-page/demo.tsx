@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Play, PauseCircle } from 'lucide-react';
 
-const Demo: React.FC = () => {
+const demo: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   
   return (
@@ -40,11 +40,7 @@ const Demo: React.FC = () => {
             {/* Video Controls */}
             <div className="bg-gray-900 p-4 flex items-center justify-between">
               <div className="text-white font-medium">TalentLink: Simplificando o Recrutamento</div>
-              <div className="flex items-center gap-4">
-                <button className="text-white hover:text-purple-400 transition-colors">HD</button>
-                <button className="text-white hover:text-purple-400 transition-colors">CC</button>
-                <button className="text-white hover:text-purple-400 transition-colors">1x</button>
-              </div>
+              
             </div>
           </div>
           
@@ -70,4 +66,4 @@ const Demo: React.FC = () => {
   );
 };
 
-export default Demo;
+export default demo;

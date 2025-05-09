@@ -25,7 +25,7 @@ const Feature: React.FC<FeatureProps> = ({ icon, title, description }) => {
   );
 };
 
-const Features: React.FC = () => {
+const funcionalidades: React.FC = () => {
   return (
     <section id="features" className="py-20 bg-gray-50">
       <div className="container mx-auto px-4 md:px-6">
@@ -96,4 +96,4 @@ const Features: React.FC = () => {
   );
 };
 
-export default Features;
+export default funcionalidades;

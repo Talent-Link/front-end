@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Highlights from './components/Highlights';
-import Testimonials from './components/Testimonials';
 import Demo from './components/Demo';
 import Features from './components/Features';
 import Comparison from './components/Comparison';
@@ -21,7 +20,6 @@ function App() {
               <main>
                 <Hero />
                 <Highlights />
-                <Testimonials />
                 <Demo />
                 <Features />
                 <Comparison />

@@ -80,7 +80,7 @@ const Comparison: React.FC = () => {
           </div>
         </div>
         
-        <div className="mt-16 text-center max-w-3xl mx-auto">
+        {/* <div className="mt-16 text-center max-w-3xl mx-auto">
           <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-8 rounded-2xl border border-purple-100">
             <h3 className="text-2xl font-bold mb-4">Resultados Comprovados</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-y-6 gap-x-4 mt-8">
@@ -98,7 +98,7 @@ const Comparison: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   );

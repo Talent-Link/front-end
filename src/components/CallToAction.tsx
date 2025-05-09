@@ -45,7 +45,7 @@ const CallToAction: React.FC = () => {
               </div>
               <h3 className="text-2xl font-bold mb-6">Plano Business</h3>
               <p className="text-3xl font-bold mb-6">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-500">R$ 299</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-500">R$ 200</span>
                 <span className="text-gray-400 text-sm">/mês</span>
               </p>
               <ul className="space-y-3 text-left mb-8">

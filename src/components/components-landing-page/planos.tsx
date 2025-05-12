@@ -41,7 +41,7 @@ const planos: React.FC = () => {
             
             <div className="bg-gradient-to-r from-pink-600/20 to-purple-600/20 backdrop-blur-sm p-6 rounded-xl relative overflow-hidden border border-purple-500/30">
               <div className="absolute top-3 right-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                POPULAR
+                Recomendado
               </div>
               <h3 className="text-2xl font-bold mb-6">Plano Business</h3>
               <p className="text-3xl font-bold mb-6">

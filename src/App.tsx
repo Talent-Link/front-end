@@ -8,7 +8,8 @@ import Comparison from './components/components-landing-page/diferencial';
 import CallToAction from './components/components-landing-page/planos';
 import Footer from './components/components-landing-page/Footer';
 import TalentLinkLogin from './pages/Candidato/loginCandidato';
-import Dashboard from './pages/Candidato/dashboardCandidato'; // Certifique-se de que o nome do componente está correto
+import Dashboard from './pages/Candidato/dashboardCandidato';
+import Feedbacks from './pages/Candidato/Feedbacks';
 
 function App() {
   return (
@@ -30,7 +31,8 @@ function App() {
             </>
           } />
           <Route path="/login" element={<TalentLinkLogin />} />
-          <Route path="/dashboard" element={<Dashboard />} /> {/* Nova rota adicionada */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/feedbacks" element={<Feedbacks />} /> 
         </Routes>
       </div>
     </Router>

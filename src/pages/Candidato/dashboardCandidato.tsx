@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import JobDetailsModal from '../../components/JobDetailsModal';
 import { FaFilter } from 'react-icons/fa';
-import feedbacks from './Feedbacks';
 
 const Dashboard: React.FC = () => {
     const userPhotoUrl = "https://via.placeholder.com/32";
@@ -36,7 +35,9 @@ const Dashboard: React.FC = () => {
         <div className="min-h-screen flex flex-col bg-gray-900 text-white">
             <header className="flex justify-between items-center p-4 bg-gray-800">
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full" />
+                    <div className="w- h-8 rounded-full overflow-hidden">
+                        <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+                    </div>
                     <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-600">TalentLink</h1>
                 </div>
                 <nav className="flex gap-4">

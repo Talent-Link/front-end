@@ -30,9 +30,11 @@ const Header: React.FC = () => {
             <a href="#Diferencial" className="font-medium text-gray-700 hover:text-purple-600 transition-colors">Diferencial</a>
             <a href="#demo" className="font-medium text-gray-700 hover:text-purple-600 transition-colors">Demonstração</a>
             <a href="#contact" className="font-medium text-gray-700 hover:text-purple-600 transition-colors">Contato</a>
-            <button className="px-5 py-2 rounded-full font-medium bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:shadow-lg transform hover:-translate-y-0.5 transition-all">
-              Entrar
-            </button>
+            <a href="/ChoiceScreen">
+              <button className="px-5 py-2 rounded-full font-medium bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:shadow-lg transform hover:-translate-y-0.5 transition-all">
+                Entrar
+              </button>
+            </a>
           </div>
           
           <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>

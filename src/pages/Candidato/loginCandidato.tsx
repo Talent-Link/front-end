@@ -2,7 +2,7 @@ import React from "react";
 import Button from "../../components/Button";
 import "../../styles/Candidato/login.css";
 
-const TalentLinkLogin: React.FC = () => {
+const LoginCandidato: React.FC = () => {
   return (
     <div className="login-container">
       <div className="login-card">
@@ -53,4 +53,4 @@ const TalentLinkLogin: React.FC = () => {
   );
 };
 
-export default TalentLinkLogin;
+export default LoginCandidato;

@@ -1,7 +1,6 @@
-// src/pages/RH/ChoiceScreen.tsx
 import React from 'react';
 import { User, Briefcase } from 'lucide-react';
-import { useNavigate } from 'react-router-dom'; // Usando navegação do React
+import { useNavigate } from 'react-router-dom';
 
 const ChoiceScreen: React.FC = () => {
     const navigate = useNavigate();

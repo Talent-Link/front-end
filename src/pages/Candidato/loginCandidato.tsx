@@ -5,21 +5,15 @@ import "../../styles/Candidato/login.css";
 const LoginCandidato: React.FC = () => {
   return (
     <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
+      <div className="login-card space-y-8">
+        <div className="login-header space-y-8">
           <div className="login-icon">
-            <svg
-              className="w-8 h-8 text-white"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16z" />
-            </svg>
+            <img src="/logo.png" alt="Logo" className="w-16 h-16" />
           </div>
-          <h2 className="login-title">Bem-vindo ao TalentLink</h2>
+          <h2 className="login-title">Bem-vindo ao TalentLink!</h2>
           <p className="login-subtitle">
-            Acesse sua conta com Google para continuar.
+            Faça login para acessar sua conta e começar a explorar as
+            oportunidades de emprego disponíveis.
           </p>
         </div>
 

@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 // Layouts
-import DashboardLayout from "./layouts/DashboardLayout";
+// import DashboardLayout from "./layouts/DashboardLayout";
 
 // Pages - Landing Page
 import Header from "./components/components-landing-page/Header";
@@ -21,7 +21,8 @@ import Feedbacks from "./pages/Candidato/feedbacks";
 // Pages - RH
 import ChoiceScreen from "./pages/ChoiceScreen";
 import LoginRH from "./pages/RH/LoginRH";
-import DashboardRH from "./pages/RH/DashboardRH";
+import DashboardRH from "./pages/RH/dashboardRH";
+import DashboardLayout from "./layouts/DashboardLayout";
 
 function App() {
   return (
@@ -53,10 +54,15 @@ function App() {
           <Route path="/loginRH" element={<LoginRH onLogin={() => {}} isAuthenticated={false} />} />
 
           {/* Dashboard RH */}
-          <Route path="/DashboardRH" element={<DashboardLayout onLogout={() => {}} />} />
-      
+          <Route
+            path="/dashboardRH"
+            element={
+              <DashboardLayout onLogout={() => {}}>
+                <DashboardRH />
+              </DashboardLayout>
+            } />
+          {/* Redirecionamento */}
 
-          
         </Routes>
       </div>
     </Router>

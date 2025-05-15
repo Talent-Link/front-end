@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Pages - Landing Page
 import Header from "./components/components-landing-page/Header";
@@ -20,6 +20,13 @@ import ChoiceScreen from "./pages/ChoiceScreen";
 import LoginRH from "./pages/RH/LoginRH";
 import DashboardRH from "./pages/RH/dashboardRH";
 import DashboardLayout from "./layouts/DashboardLayout";
+import CandidateList from "./pages/RH/CandidateList";
+import CreateJob from "./pages/RH/CreateJob";
+import ManageJobs from "./pages/RH/ManageJobs";
+import CandidateProfile from "./pages/RH/CandidateProfile";
+import TalentBank from "./pages/RH/TalentBank";
+import Reports from "./pages/RH/Reports";
+import Settings from "./pages/RH/Settings";
 
 function App() {
   return (
@@ -27,18 +34,23 @@ function App() {
       <div className="font-sans text-gray-800 min-h-screen flex flex-col">
         <Routes>
           {/* Rota da Landing Page */}
-          <Route path="/" element={<>
-            <Header />
-            <main>
-              <Hero />
-              <Highlights />
-              <Demo />
-              <Features />
-              <Comparison />
-              <CallToAction />
-            </main>
-            <Footer />
-          </>} />
+          <Route
+            path="/"
+            element={
+              <>
+                <Header />
+                <main>
+                  <Hero />
+                  <Highlights />
+                  <Demo />
+                  <Features />
+                  <Comparison />
+                  <CallToAction />
+                </main>
+                <Footer />
+              </>
+            }
+          />
 
           {/* Rota das telas (Candidato ou Empresa) */}
           <Route path="/ChoiceScreen" element={<ChoiceScreen />} />
@@ -48,18 +60,26 @@ function App() {
           <Route path="/feedbacks" element={<Feedbacks />} />
 
           {/* Rotas para RH */}
-          <Route path="/loginRH" element={<LoginRH onLogin={() => {}} isAuthenticated={false} />} />
+          <Route
+            path="/loginRH"
+            element={<LoginRH onLogin={() => {}} isAuthenticated={false} />}
+          />
 
           {/* Dashboard RH */}
           <Route
             path="/dashboardRH"
-            element={
-              <DashboardLayout onLogout={() => {}}>
-                <DashboardRH />
-              </DashboardLayout>
-            } />
+            element={<DashboardLayout onLogout={() => {}} />}
+          >
+            <Route index element={<DashboardRH />} />
+            <Route path="create-job" element={<CreateJob />} />
+            <Route path="manage-jobs" element={<ManageJobs />} />
+            <Route path="candidate/:id" element={<CandidateProfile />} />
+            <Route path="talent-bank" element={<TalentBank />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="candidates/:jobId" element={<CandidateList />} />
+          </Route>
           {/* Redirecionamento */}
-
         </Routes>
       </div>
     </Router>

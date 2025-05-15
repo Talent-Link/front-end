@@ -1,8 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-// Layouts
-// import DashboardLayout from "./layouts/DashboardLayout";
-
 // Pages - Landing Page
 import Header from "./components/components-landing-page/Header";
 import Hero from "./components/components-landing-page/telaInicial";

@@ -270,7 +270,7 @@ const TalentBank = () => {
   }, [searchTerm, skillFilter, statusFilter, sortBy, candidates]);
   
   const handleViewCandidate = (id: string) => {
-    navigate(`/candidate/${id}`);
+    navigate(`/dashboardRH/candidate/${id}`);
   };
   
   const handleExportList = () => {

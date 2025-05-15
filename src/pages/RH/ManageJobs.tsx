@@ -118,7 +118,7 @@ const ManageJobs = () => {
   }, [searchTerm, statusFilter, jobs]);
   
   const handleCreateJob = () => {
-    navigate('create-job');
+    navigate('/dashboardRH/create-job');
   };
   
   const handleEditJob = (id: string) => {

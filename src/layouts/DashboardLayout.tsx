@@ -22,12 +22,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout, children })
   const location = useLocation();
   
   const navigation = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
-    { name: 'Create Job', icon: BriefcaseBusiness, path: '/create-job' },
-    { name: 'Manage Jobs', icon: ClipboardList, path: '/manage-jobs' },
-    { name: 'Talent Bank', icon: Users, path: '/talent-bank' },
-    { name: 'Reports', icon: BarChart3, path: '/reports' },
-    { name: 'Settings', icon: Settings, path: '/settings' },
+    { name: 'Dashboard', icon: LayoutDashboard, path: '.' },
+    { name: 'Create Job', icon: BriefcaseBusiness, path: 'create-job' },
+    { name: 'Manage Jobs', icon: ClipboardList, path: 'manage-jobs' },
+    { name: 'Talent Bank', icon: Users, path: 'talent-bank' },
+    { name: 'Reports', icon: BarChart3, path: 'reports' },
+    { name: 'Settings', icon: Settings, path: 'settings' },
   ];
   
   const toggleSidebar = () => {

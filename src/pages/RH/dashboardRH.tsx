@@ -95,11 +95,11 @@ const DashboardRH = () => {
   }, []);
   
   const handleCreateJob = () => {
-    navigate('/create-job');
+    navigate('create-job');
   };
   
   const handleEditJob = (id: string) => {
-    navigate(`/create-job?id=${id}`);
+    navigate(`create-job?id=${id}`);
   };
   
   const handleDeactivateJob = (id: string) => {
@@ -122,7 +122,7 @@ const DashboardRH = () => {
   };
   
   const handleViewCandidates = (id: string) => {
-    navigate(`/candidates/${id}`);
+    navigate(`candidates/${id}`);
   };
   
   // Chart data
@@ -273,7 +273,7 @@ const DashboardRH = () => {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Vagas Recentes</h2>
           <button
-            onClick={() => navigate('/manage-jobs')}
+            onClick={() => navigate('manage-jobs')}
             className="text-pink-500 hover:text-pink-400 text-sm font-medium"
           >
             Ver Todas

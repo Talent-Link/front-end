@@ -1,12 +1,24 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class', // Adicionando suporte ao modo escuro
   theme: {
     extend: {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
       },
       colors: {
+        dark: {
+          100: '#E0E1E6',
+          200: '#C2C3CC',
+          300: '#A3A5B3',
+          400: '#85889A',
+          500: '#666A80',
+          600: '#4D5066',
+          700: '#33364D',
+          800: '#1A1C33',
+          900: '#0D0E1A',
+        },
         pink: {
           50: '#fdf2f8',
           100: '#fce7f3',
@@ -32,6 +44,9 @@ export default {
           900: '#4c1d95',
         },
       },
+      backgroundImage: {
+        'gradient-primary': 'linear-gradient(to right, #ec4899, #8b5cf6)',
+      },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.5s ease-in-out',
@@ -54,6 +69,20 @@ export default {
         '.bg-gradient-primary': {
           'background-image': 'linear-gradient(to right, #ec4899, #8b5cf6)',
         },
+        '.bg-transparent': {
+          'background-color': 'transparent',
+        },
+        '.text-adjust-none': {
+          '-webkit-text-size-adjust': '100%',
+          'text-size-adjust': '100%', // Corrigido para compatibilidade
+        },
+        '.font-smooth': {
+          '-webkit-font-smoothing': 'antialiased',
+          'font-smoothing': 'antialiased', // Removido -moz-osx-font-smoothing
+        },
+        '.gap-optimized': {
+          'gap': '20px',
+        }
       };
       addUtilities(newUtilities);
     },

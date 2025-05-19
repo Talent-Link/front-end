@@ -10,7 +10,7 @@ const ChoiceScreen: React.FC = () => {
     };
 
     const navigateToCompany = () => {
-        navigate('/loginEmpresa');
+        navigate('/LoginRH');
     };
 
     return (

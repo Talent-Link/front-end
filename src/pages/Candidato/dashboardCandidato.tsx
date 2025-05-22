@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import JobDetailsModal from "../../components/JobDetailsModal";
 import { FaFilter } from "react-icons/fa";
 import HeaderCandidato from "../../components/headerCandidato";
+import api from "../../services/api"; // importando o Axios
 
 const Dashboard: React.FC = () => {
+  const [opportunities, setOpportunities] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState({
     title: "",
@@ -15,6 +17,19 @@ const Dashboard: React.FC = () => {
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
 
+  useEffect(() => {
+    const fetchOpportunities = async () => {
+      try {
+        const res = await api.get("/opportunities");
+        setOpportunities(res.data);
+      } catch (error) {
+        console.error("Erro ao buscar oportunidades:", error);
+      }
+    };
+
+    fetchOpportunities();
+  }, []);
+
   const openModal = (
     title: string,
     description: string,
@@ -25,7 +40,6 @@ const Dashboard: React.FC = () => {
   };
 
   const closeModal = () => setIsModalOpen(false);
-
   const toggleFilterMenu = () => setIsFilterMenuOpen(!isFilterMenuOpen);
 
   const toggleFilter = (filter: string) => {
@@ -35,6 +49,18 @@ const Dashboard: React.FC = () => {
         : [...prev, filter]
     );
   };
+
+  // Aplica filtro de busca e local
+  const filteredJobs = opportunities.filter((job) => {
+    const matchesSearch = job.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    const matchesFilter =
+      selectedFilters.length === 0 || selectedFilters.includes(job.location); // assumindo que location = "Remoto", etc.
+
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-900 text-white">
@@ -60,86 +86,42 @@ const Dashboard: React.FC = () => {
           {isFilterMenuOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded shadow-lg z-10">
               <div className="p-2">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.includes("Remoto")}
-                    onChange={() => toggleFilter("Remoto")}
-                  />
-                  Remoto
-                </label>
-                <label className="flex items-center gap-2 mt-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.includes("Híbrido")}
-                    onChange={() => toggleFilter("Híbrido")}
-                  />
-                  Híbrido
-                </label>
-                <label className="flex items-center gap-2 mt-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.includes("Presencial")}
-                    onChange={() => toggleFilter("Presencial")}
-                  />
-                  Presencial
-                </label>
+                {["Remoto", "Híbrido", "Presencial"].map((tipo) => (
+                  <label key={tipo} className="flex items-center gap-2 mt-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedFilters.includes(tipo)}
+                      onChange={() => toggleFilter(tipo)}
+                    />
+                    {tipo}
+                  </label>
+                ))}
               </div>
             </div>
           )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <h3 className="font-bold">Senior Frontend Developer</h3>
-            <p className="text-gray-400">TechCorp - Remoto</p>
-            <button
-              className="text-purple-400 mt-2"
-              onClick={() =>
-                openModal(
-                  "Senior Frontend Developer",
-                  "Desenvolvimento de interfaces modernas.",
-                  "React, Typescript, CSS."
-                )
-              }
-            >
-              Visualizar Detalhes →
-            </button>
-          </div>
-
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <h3 className="font-bold">Backend Developer</h3>
-            <p className="text-gray-400">DataSystems - Híbrido</p>
-            <button
-              className="text-purple-400 mt-2"
-              onClick={() =>
-                openModal(
-                  "Backend Developer",
-                  "Desenvolvimento de APIs robustas.",
-                  "Node.js, Express, MongoDB."
-                )
-              }
-            >
-              Visualizar Detalhes →
-            </button>
-          </div>
-
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <h3 className="font-bold">UX/UI Designer</h3>
-            <p className="text-gray-400">CreativeMinds - Presencial</p>
-            <button
-              className="text-purple-400 mt-2"
-              onClick={() =>
-                openModal(
-                  "UX/UI Designer",
-                  "Design de interfaces intuitivas.",
-                  "Figma, Adobe XD."
-                )
-              }
-            >
-              Visualizar Detalhes →
-            </button>
-          </div>
+          {filteredJobs.map((job) => (
+            <div key={job.id} className="bg-gray-800 p-4 rounded-lg">
+              <h3 className="font-bold">{job.title}</h3>
+              <p className="text-gray-400">
+                {job.company?.name} - {job.location}
+              </p>
+              <button
+                className="text-purple-400 mt-2"
+                onClick={() =>
+                  openModal(
+                    job.title,
+                    job.description,
+                    job.requirements || "Requisitos não informados."
+                  )
+                }
+              >
+                Visualizar Detalhes →
+              </button>
+            </div>
+          ))}
         </div>
       </main>
 

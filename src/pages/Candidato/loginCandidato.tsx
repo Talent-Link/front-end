@@ -17,7 +17,34 @@ const LoginCandidato: React.FC = () => {
           </p>
         </div>
 
-        <Button variant="primary" size="md" className="login-button">
+        <Button
+          variant="primary"
+          size="md"
+          className="login-button"
+          onClick={() => {
+            window.open(
+              "https://talentlink-wd88.onrender.com/auth/google/CANDIDATO",
+              "_blank",
+              "width=500,height=600"
+            );
+
+            const handleMessage = (event: MessageEvent) => {
+              if (event.origin !== "https://talentlink-wd88.onrender.com")
+                return;
+
+              const { token, user } = event.data;
+
+              if (token) {
+                localStorage.setItem("authToken", token);
+                localStorage.setItem("user", JSON.stringify(user));
+                window.removeEventListener("message", handleMessage);
+                window.location.href = "/dashboard"; // redireciona para a dashboard
+              }
+            };
+
+            window.addEventListener("message", handleMessage);
+          }}
+        >
           <div className="flex items-center justify-center">
             <svg
               className="w-6 h-6 mr-2"

@@ -14,6 +14,7 @@ import Footer from "./components/components-landing-page/Footer";
 import LoginCandidato from "./pages/Candidato/loginCandidato";
 import Dashboard from "./pages/Candidato/dashboardCandidato";
 import Feedbacks from "./pages/Candidato/feedbacks";
+import ResponderFormulario from "./pages/Candidato/ResponderFormulario";
 
 // Pages - RH
 import ChoiceScreen from "./pages/ChoiceScreen";
@@ -58,6 +59,9 @@ function App() {
           <Route path="/loginCandidato" element={<LoginCandidato />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/feedbacks" element={<Feedbacks />} />
+            <Route path="/candidato/oportunidade/:id" element={<ResponderFormulario />} />
+
+          {/* Rotas para Candidato */}
 
           {/* Rotas para RH */}
           <Route

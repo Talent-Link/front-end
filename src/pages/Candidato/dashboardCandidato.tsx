@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import JobDetailsModal from "../../components/JobDetailsModal";
 import { FaFilter } from "react-icons/fa";
 import HeaderCandidato from "../../components/headerCandidato";
-import api from "../../services/api"; // importando o Axios
+import api from "../../services/api";
 
 const Dashboard: React.FC = () => {
   const [opportunities, setOpportunities] = useState<any[]>([]);
@@ -11,6 +11,8 @@ const Dashboard: React.FC = () => {
     title: "",
     description: "",
     requirements: "",
+    jobId: "",
+    hasForm: false,
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,9 +35,11 @@ const Dashboard: React.FC = () => {
   const openModal = (
     title: string,
     description: string,
-    requirements: string
+    requirements: string,
+    jobId: string,
+    hasForm: boolean
   ) => {
-    setSelectedJob({ title, description, requirements });
+    setSelectedJob({ title, description, requirements, jobId, hasForm });
     setIsModalOpen(true);
   };
 
@@ -50,14 +54,13 @@ const Dashboard: React.FC = () => {
     );
   };
 
-  // Aplica filtro de busca e local
   const filteredJobs = opportunities.filter((job) => {
     const matchesSearch = job.title
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
 
     const matchesFilter =
-      selectedFilters.length === 0 || selectedFilters.includes(job.location); // assumindo que location = "Remoto", etc.
+      selectedFilters.length === 0 || selectedFilters.includes(job.location);
 
     return matchesSearch && matchesFilter;
   });
@@ -114,7 +117,9 @@ const Dashboard: React.FC = () => {
                   openModal(
                     job.title,
                     job.description,
-                    job.requirements || "Requisitos não informados."
+                    job.requirements || "Requisitos não informados.",
+                    job.id,
+                    !!job.formId
                   )
                 }
               >
@@ -131,6 +136,8 @@ const Dashboard: React.FC = () => {
         title={selectedJob.title}
         description={selectedJob.description}
         requirements={selectedJob.requirements}
+        jobId={selectedJob.jobId}
+        hasForm={selectedJob.hasForm}
       />
 
       <footer className="p-2 bg-gray-800 text-center text-gray-500 mt-auto">

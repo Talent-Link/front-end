@@ -294,7 +294,7 @@ const TalentBank = () => {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Banco de Talentos</h1>
+          <h1 className="text-3xl font-bold ">Banco de Talentos</h1>
           <p className="text-dark-300 mt-1">
             {candidates.length} candidatos no total
           </p>

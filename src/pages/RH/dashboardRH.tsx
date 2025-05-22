@@ -210,7 +210,7 @@ const DashboardRH = () => {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
           <p className="text-dark-300 mt-1">Manage your recruitment process</p>
         </div>
         
@@ -271,7 +271,7 @@ const DashboardRH = () => {
       {/* Recent Jobs */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Vagas Recentes</h2>
+          <h2 className="text-xl font-semibold text-white">Vagas Recentes</h2>
           <button
             onClick={() => navigate('manage-jobs')}
             className="text-pink-500 hover:text-pink-400 text-sm font-medium"

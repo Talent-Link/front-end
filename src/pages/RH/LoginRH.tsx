@@ -52,7 +52,7 @@ const LoginRH = ({ onLogin, isAuthenticated }: LoginProps) => {
         <div className="card">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold gradient-text mb-2">TalentLink</h1>
-            <h2 className="text-2xl font-bold mb-1">Acesse como Empresa</h2>
+            <h2 className="text-2xl font-bold mb-1 text-white">Acesse como Empresa</h2>
             <p className="text-dark-300">
               Faça login para gerenciar suas vagas e encontrar os melhores talentos.
             </p>

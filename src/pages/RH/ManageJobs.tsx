@@ -164,7 +164,7 @@ const ManageJobs = () => {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Gerenciar Vagas</h1>
+          <h1 className="text-3xl font-bold text-white">Gerenciar Vagas</h1>
           <p className="text-dark-300 mt-1">
             Visualize e gerencie todas as suas vagas
           </p>
@@ -198,7 +198,7 @@ const ManageJobs = () => {
           <div className="md:w-48">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Filter size={18} className="text-dark-400" />
+                <Filter size={18} className="text-dark-400" />    
               </div>
               <select
                 value={statusFilter}

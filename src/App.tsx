@@ -15,7 +15,7 @@ import LoginCandidato from "./pages/Candidato/loginCandidato";
 import Dashboard from "./pages/Candidato/dashboardCandidato";
 import Feedbacks from "./pages/Candidato/feedbacks";
 import ResponderFormulario from "./pages/Candidato/ResponderFormulario";
-
+import Candidaturas from "./pages/Candidato/Candidaturas";
 // Pages - RH
 import ChoiceScreen from "./pages/ChoiceScreen";
 import LoginRH from "./pages/RH/LoginRH";
@@ -56,20 +56,21 @@ function App() {
           {/* Rota das telas (Candidato ou Empresa) */}
           <Route path="/ChoiceScreen" element={<ChoiceScreen />} />
 
+          {/* Rota para o login do Candidato */}
           <Route path="/loginCandidato" element={<LoginCandidato />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/feedbacks" element={<Feedbacks />} />
-            <Route path="/candidato/oportunidade/:id" element={<ResponderFormulario />} />
-
-          {/* Rotas para Candidato */}
+          <Route path="/candidaturas" element={<Candidaturas />} />
+          <Route
+            path="/candidato/oportunidade/:id"
+            element={<ResponderFormulario />}
+          />
 
           {/* Rotas para RH */}
           <Route
             path="/loginRH"
             element={<LoginRH onLogin={() => {}} isAuthenticated={false} />}
           />
-
-          {/* Dashboard RH */}
           <Route
             path="/dashboardRH"
             element={<DashboardLayout onLogout={() => {}} />}
@@ -83,7 +84,6 @@ function App() {
             <Route path="settings" element={<Settings />} />
             <Route path="candidates/:jobId" element={<CandidateList />} />
           </Route>
-          {/* Redirecionamento */}
         </Routes>
       </div>
     </Router>

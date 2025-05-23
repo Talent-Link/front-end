@@ -1,4 +1,5 @@
 import React from 'react';
+import Button from "../components/Button";
 
 interface JobDetailsModalProps {
   isOpen: boolean;
@@ -32,12 +33,12 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
 
         <div className="flex justify-end gap-2">
           {hasForm && (
-            <button
-              className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded"
+            <Button
+             
               onClick={() => window.location.href = `/candidato/oportunidade/${jobId}`}
             >
               Candidatar-se
-            </button>
+            </Button>
           )}
           <button
             className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded"

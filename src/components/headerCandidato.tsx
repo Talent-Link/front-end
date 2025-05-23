@@ -28,6 +28,9 @@ const HeaderCandidato: React.FC = () => {
         <a href="/feedbacks" className="text-purple-300 hover:text-white">
           Feedbacks
         </a>
+        <a href="/candidaturas" className="text-purple-300 hover:text-white">
+          Candidaturas       
+        </a>
         <div className="flex items-center gap-3 pl-4">
           <img
             src={userPhotoUrl}

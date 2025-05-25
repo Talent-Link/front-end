@@ -127,7 +127,6 @@ const Candidaturas: React.FC = () => {
                       if (!confirmDelete) return;
 
                       try {
-                        // certifique-se que app.responseId = response.id
                         await api.delete(`/opportunities/${app.responseId}/withdraw`);
                         setApplications((prev) =>
                           prev.filter((a) => a.responseId !== app.responseId)

@@ -9,20 +9,17 @@ const Header: React.FC = () => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-    
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
     <header className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'}`}>
-      <div className="container mx-auto px-4 md:px-6">
+      <div className="container mx-auto px-2 md:px-6"> {/* px-2 para menos padding lateral */}
         <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <div className="flex items-center">
-              <PenTool className="h-8 w-8 mr-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600" />
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-600">TalentLink</span>
-            </div>
+          <div className="flex items-center mr-auto"> {/* mr-auto para colar à esquerda */}
+            <PenTool className="h-8 w-8 mr-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600" />
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-600">TalentLink</span>
           </div>
           
           <div className="hidden md:flex items-center space-x-8">
@@ -37,7 +34,10 @@ const Header: React.FC = () => {
             </a>
           </div>
           
-          <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
+          <button
+            className="md:hidden ml-2 pr-2" // ml-2 para afastar do conteúdo, pr-2 para afastar da borda
+            onClick={() => setIsOpen(!isOpen)}
+          >
             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
@@ -46,13 +46,39 @@ const Header: React.FC = () => {
       {/* Mobile menu */}
       <div className={`md:hidden ${isOpen ? 'block' : 'hidden'} bg-white shadow-lg`}>
         <div className="px-4 py-5 space-y-5">
-          <a href="#features" className="block font-medium text-gray-700 hover:text-purple-600">Caracteristicas</a>
-          <a href="#Diferencial" className="block font-medium text-gray-700 hover:text-purple-600">Diferencial</a>
-          <a href="#demo" className="block font-medium text-gray-700 hover:text-purple-600">Demonstração</a>
-          <a href="#contact" className="block font-medium text-gray-700 hover:text-purple-600">Contatos</a>
-          <button className="w-full px-5 py-2 rounded-full font-medium bg-gradient-to-r from-pink-500 to-purple-600 text-white">
-            Entrar
-          </button>
+          <a
+            href="#features"
+            className="block font-medium text-gray-700 hover:text-purple-600"
+            onClick={() => setIsOpen(false)}
+          >
+            Caracteristicas
+          </a>
+          <a
+            href="#Diferencial"
+            className="block font-medium text-gray-700 hover:text-purple-600"
+            onClick={() => setIsOpen(false)}
+          >
+            Diferencial
+          </a>
+          <a
+            href="#demo"
+            className="block font-medium text-gray-700 hover:text-purple-600"
+            onClick={() => setIsOpen(false)}
+          >
+            Demonstração
+          </a>
+          <a
+            href="#contact"
+            className="block font-medium text-gray-700 hover:text-purple-600"
+            onClick={() => setIsOpen(false)}
+          >
+            Contatos
+          </a>
+          <a href="/ChoiceScreen" className="block" onClick={() => setIsOpen(false)}>
+            <button className="w-full px-5 py-2 rounded-full font-medium bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+              Entrar
+            </button>
+          </a>
         </div>
       </div>
     </header>

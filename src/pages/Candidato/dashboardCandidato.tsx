@@ -111,20 +111,20 @@ const Dashboard: React.FC = () => {
               <p className="text-gray-400">
                 {job.company?.name} - {job.location}
               </p>
-              <button
-                className="text-purple-400 mt-2"
-                onClick={() =>
-                  openModal(
-                    job.title,
-                    job.description,
-                    job.requirements || "Requisitos não informados.",
-                    job.id,
-                    !!job.formId
-                  )
-                }
-              >
-                Visualizar Detalhes →
-              </button>
+                <button
+                  className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-30 py-2 rounded mt-3 transition-colors font-semibold"
+                  onClick={() =>
+                    openModal(
+                      job.title,
+                      job.description,
+                      job.requirements || "Requisitos não informados.",
+                      job.id,
+                      !!job.formId
+                    )
+                  }
+                >
+                  Visualizar Detalhes →
+                </button>
             </div>
           ))}
         </div>

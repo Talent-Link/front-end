@@ -62,13 +62,13 @@ const HeaderCandidato: React.FC = () => {
           Candidaturas
         </a>
         <div className="flex items-center gap-3 pl-1">
-          <img src={userPhotoUrl} alt="User" className="w-8 h-8 rounded-full" />
-          <button
-            onClick={handleLogout}
-            className="text-purple-300 hover:text-white text-sm border border-purple-400 px-2 py-1 rounded"
-          >
-            Sair
-          </button>
+<img src={userPhotoUrl} alt="User" className="w-8 h-8 rounded-full border-2 border-purple-400" />
+            <button
+              onClick={handleLogout}
+              className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-3 py-1 rounded transition-colors font-semibold border border-pink-500 hover:border-pink-600 border-[1px]"
+            >
+              Sair
+            </button>
         </div>
       </nav>
     </header>

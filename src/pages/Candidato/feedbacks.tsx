@@ -20,6 +20,12 @@ interface Feedback {
   };
 }
 
+const statusMessages: Record<Feedback["status"], string> = {
+  approved: "Aprovado",
+  rejected: "Reprovado",
+  "in-progress": "Em análise",
+};
+
 const Feedbacks: React.FC = () => {
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,9 +57,11 @@ const Feedbacks: React.FC = () => {
         </header>
 
         {loading ? (
-          <p className="text-gray-400">Carregando feedbacks...</p>
+          <p className="text-gray-400">Carregando feedbacks, por favor aguarde...</p>
         ) : feedbacks.length === 0 ? (
-          <p className="text-gray-400">Você ainda não possui feedbacks de candidaturas.</p>
+          <p className="text-gray-400">
+            Você ainda não recebeu feedbacks sobre suas candidaturas. Assim que houver novidades, eles aparecerão aqui!
+          </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {feedbacks.map((fb) => (
@@ -64,15 +72,30 @@ const Feedbacks: React.FC = () => {
                 <p className="text-gray-400">
                   Empresa: {fb.response?.opportunity?.company?.name || "Desconhecida"}
                 </p>
-                <p className="text-gray-400">Status: {fb.status}</p>
+                <p className="text-gray-400">
+                  Status:{" "}
+                  <span
+                  className={`font-semibold ${
+                    fb.status === "approved"
+                    ? "text-green-400"
+                    : fb.status === "rejected"
+                    ? "text-red-400"
+                    : "text-yellow-400"
+                  }`}
+                  >
+                  {statusMessages[fb.status]}
+                  </span>
+                </p>
                 {fb.score !== undefined && (
-                  <p className="text-gray-400">Pontuação: {fb.score}/100</p>
+                  <p className="text-gray-400">
+                    Pontuação recebida: <span className="font-semibold">{fb.score}/100</span>
+                  </p>
                 )}
                 {fb.message && (
-                  <p className="text-gray-400 mt-2">{fb.message}</p>
+                  <p className="text-gray-300 mt-2 italic">"{fb.message}"</p>
                 )}
                 <p className="text-gray-500 text-sm mt-2">
-                  {new Date(fb.createdAt).toLocaleDateString()}
+                  Recebido em: {new Date(fb.createdAt).toLocaleDateString()}
                 </p>
               </div>
             ))}

@@ -28,6 +28,7 @@ import CandidateProfile from "./pages/RH/CandidateProfile";
 import TalentBank from "./pages/RH/TalentBank";
 import Reports from "./pages/RH/Reports";
 import Settings from "./pages/RH/Settings";
+import CreateForm from "./pages/RH/CreateForm";
 
 function App() {
   return (
@@ -69,14 +70,15 @@ function App() {
           {/* Rotas para RH */}
           <Route
             path="/loginRH"
-            element={<LoginRH onLogin={() => {}} isAuthenticated={false} />}
+            element={<LoginRH />}
           />
           <Route
             path="/dashboardRH"
-            element={<DashboardLayout onLogout={() => {}} />}
+            element={<DashboardLayout />}
           >
             <Route index element={<DashboardRH />} />
             <Route path="create-job" element={<CreateJob />} />
+            <Route path="create-form" element={<CreateForm />} />
             <Route path="manage-jobs" element={<ManageJobs />} />
             <Route path="candidate/:id" element={<CandidateProfile />} />
             <Route path="talent-bank" element={<TalentBank />} />

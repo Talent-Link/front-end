@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Plus,
   X,
@@ -12,6 +12,7 @@ import { Job } from "../../types";
 
 const emptyJob: Omit<Job, "id" | "createdAt" | "applicantsCount"> & {
   formId?: string;
+  companyId?: string;
 } = {
   title: "",
   description: "",
@@ -21,64 +22,49 @@ const emptyJob: Omit<Job, "id" | "createdAt" | "applicantsCount"> & {
   location: "",
   status: "Open",
   formId: undefined,
-};
-
-const mockJob: Job = {
-  id: "1",
-  title: "Senior Frontend Developer",
-  description:
-    "We are looking for an experienced Frontend Developer to join our team.",
-  requirements: ["5+ years of React experience", "TypeScript", "CSS/SCSS"],
-  benefits: ["Competitive salary", "Remote work", "Health insurance"],
-  type: "Remote",
-  location: "Anywhere",
-  status: "Open",
-  createdAt: "2023-09-15T10:00:00Z",
-  applicantsCount: 12,
+  companyId: undefined,
 };
 
 const CreateJob = () => {
-  const [job, setJob] =
-    useState<Omit<Job, "id" | "createdAt" | "applicantsCount">>(emptyJob);
+  const [job, setJob] = useState(emptyJob);
   const [newRequirement, setNewRequirement] = useState("");
   const [newBenefit, setNewBenefit] = useState("");
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>(
+    []
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
   const [forms, setForms] = useState<{ id: string; title: string }[]>([]);
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const jobId = queryParams.get("id");
-    if (jobId) {
-      setJob({
-        title: mockJob.title,
-        description: mockJob.description,
-        requirements: [...mockJob.requirements],
-        benefits: [...mockJob.benefits],
-        type: mockJob.type,
-        location: mockJob.location,
-        status: mockJob.status,
-      });
-      setIsEditMode(true);
-    }
-  }, [location]);
+    const fetchData = async () => {
+      const token = localStorage.getItem("authToken");
 
-  useEffect(() => {
-    const fetchForms = async () => {
       try {
-        const token = localStorage.getItem("authToken");
-        const res = await fetch(`${process.env.REACT_APP_API_URL}/forms`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        setForms(data);
+        const [companyRes, formRes] = await Promise.all([
+          fetch(`${import.meta.env.VITE_API_URL}/empresa/rh`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${import.meta.env.VITE_API_URL}/forms`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        if (companyRes.ok) {
+          const companyData = await companyRes.json();
+          setCompanies(companyData);
+        }
+
+        if (formRes.ok) {
+          const formData = await formRes.json();
+          setForms(formData);
+        }
       } catch (err) {
-        console.error("Erro ao buscar formulários", err);
+        console.error("Erro ao buscar dados:", err);
       }
     };
-    fetchForms();
+
+    fetchData();
   }, []);
 
   const handleInputChange = (field: keyof typeof job, value: string) => {
@@ -103,30 +89,63 @@ const CreateJob = () => {
     setJob({ ...job, [field]: job[field].filter((_, i) => i !== index) });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const companyId = job.companyId;
+
+      // Validação básica antes de enviar
+      if (!job.title || !job.description || !job.location || !companyId) {
+        alert("Preencha todos os campos obrigatórios, incluindo a empresa.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const payload = {
+        ...job,
+        companyId,
+      };
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/opportunities`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText);
+      }
+
+      alert("Oportunidade criada com sucesso!");
+      console.log("Payload enviado:", payload);
+      navigate("/dashboardRH/manage-jobs");
+    } catch (err) {
+      console.error("Erro ao criar vaga:", err);
+      alert(
+        "Erro ao criar oportunidade. Verifique se todos os dados estão corretos."
+      );
+    } finally {
       setIsSubmitting(false);
-      navigate("manage-jobs");
-    }, 1000);
+    }
   };
 
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">
-          {isEditMode ? "Editar Vaga" : "Criar Nova Vaga"}
-        </h1>
+        <h1 className="text-3xl font-bold ">Criar Nova Vaga</h1>
         <p className="text-dark-300 mt-1">
-          {isEditMode
-            ? "Atualize as informações da vaga existente"
-            : "Preencha os detalhes para publicar uma nova vaga"}
+          Preencha os detalhes para publicar uma nova vaga
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="card space-y-8">
-        {/* Informações Básicas */}
         <Section
           title="Informações Básicas"
           icon={<FileText size={20} className="mr-2 text-pink-500" />}
@@ -144,12 +163,11 @@ const CreateJob = () => {
             id="description"
             value={job.description}
             onChange={(e) => handleInputChange("description", e.target.value)}
-            placeholder="Descreva as responsabilidades e o que você espera do candidato..."
+            placeholder="Descreva as responsabilidades..."
             required
           />
         </Section>
 
-        {/* Tipo e Localização */}
         <Section
           title="Tipo e Localização"
           icon={<BriefcaseBusiness size={20} className="mr-2 text-pink-500" />}
@@ -179,7 +197,6 @@ const CreateJob = () => {
           </div>
         </Section>
 
-        {/* Requisitos */}
         <Section
           title="Requisitos"
           icon={<Star size={20} className="mr-2 text-pink-500" />}
@@ -192,12 +209,11 @@ const CreateJob = () => {
               handleAddItem("requirements", newRequirement, setNewRequirement)
             }
             onRemove={(index) => handleRemoveItem("requirements", index)}
-            placeholder="Ex: 3+ anos de experiência com React"
+            placeholder="Ex: 3+ anos com React"
             emptyText="Nenhum requisito adicionado"
           />
         </Section>
 
-        {/* Benefícios */}
         <Section
           title="Benefícios"
           icon={<Star size={20} className="mr-2 text-pink-500" />}
@@ -208,12 +224,44 @@ const CreateJob = () => {
             setNewItem={setNewBenefit}
             onAdd={() => handleAddItem("benefits", newBenefit, setNewBenefit)}
             onRemove={(index) => handleRemoveItem("benefits", index)}
-            placeholder="Ex: Plano de saúde, Vale refeição, etc."
+            placeholder="Ex: Plano de saúde, VR, etc."
             emptyText="Nenhum benefício adicionado"
           />
         </Section>
 
-        {/* Botões */}
+        <Section
+          title="Empresa"
+          icon={<BriefcaseBusiness size={20} className="mr-2 text-pink-500" />}
+        >
+          <Select
+            label="Selecionar Empresa"
+            id="companyId"
+            value={job.companyId ?? ""}
+            onChange={(e) => handleInputChange("companyId", e.target.value)}
+            options={[
+              { value: "", label: "Nenhuma empresa selecionada" },
+              ...companies.map((c) => ({ value: c.id, label: c.name })),
+            ]}
+            required
+          />
+        </Section>
+
+        <Section
+          title="Formulário Vinculado"
+          icon={<FileText size={20} className="mr-2 text-pink-500" />}
+        >
+          <Select
+            label="Selecionar Formulário"
+            id="formId"
+            value={job.formId ?? ""}
+            onChange={(e) => handleInputChange("formId", e.target.value)}
+            options={[
+              { value: "", label: "Nenhum formulário" },
+              ...forms.map((f) => ({ value: f.id, label: f.title })),
+            ]}
+          />
+        </Section>
+
         <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-dark-700">
           <button
             type="submit"
@@ -221,9 +269,9 @@ const CreateJob = () => {
             disabled={isSubmitting}
           >
             {isSubmitting ? (
-              <span className="inline-block animate-pulse">Salvando...</span>
+              <span className="animate-pulse">Salvando...</span>
             ) : (
-              <span>{isEditMode ? "Atualizar Vaga" : "Publicar Vaga"}</span>
+              "Publicar Vaga"
             )}
           </button>
           <button
@@ -239,14 +287,16 @@ const CreateJob = () => {
   );
 };
 
-// Componentes auxiliares para clareza e organização
-
-type SectionProps = {
+// Componentes auxiliares
+const Section = ({
+  title,
+  icon,
+  children,
+}: {
   title: string;
   icon: React.ReactNode;
   children: React.ReactNode;
-};
-const Section = ({ title, icon, children }: SectionProps) => (
+}) => (
   <div className="space-y-6">
     <h2 className="text-xl font-semibold flex items-center">
       {icon}
@@ -256,11 +306,14 @@ const Section = ({ title, icon, children }: SectionProps) => (
   </div>
 );
 
-type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
+const Input = ({
+  label,
+  icon,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   icon?: React.ReactNode;
-};
-const Input = ({ label, icon, ...props }: InputProps) => (
+}) => (
   <div>
     <label
       htmlFor={props.id}
@@ -279,10 +332,10 @@ const Input = ({ label, icon, ...props }: InputProps) => (
   </div>
 );
 
-type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
-  label: string;
-};
-const Textarea = ({ label, ...props }: TextareaProps) => (
+const Textarea = ({
+  label,
+  ...props
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) => (
   <div>
     <label
       htmlFor={props.id}
@@ -294,11 +347,14 @@ const Textarea = ({ label, ...props }: TextareaProps) => (
   </div>
 );
 
-type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
+const Select = ({
+  label,
+  options,
+  ...props
+}: React.SelectHTMLAttributes<HTMLSelectElement> & {
   label: string;
   options: { value: string; label: string }[];
-};
-const Select = ({ label, options, ...props }: SelectProps) => (
+}) => (
   <div>
     <label
       htmlFor={props.id}
@@ -316,15 +372,6 @@ const Select = ({ label, options, ...props }: SelectProps) => (
   </div>
 );
 
-type AddListProps = {
-  items: string[];
-  newItem: string;
-  setNewItem: React.Dispatch<React.SetStateAction<string>>;
-  onAdd: () => void;
-  onRemove: (index: number) => void;
-  placeholder: string;
-  emptyText: string;
-};
 const AddList = ({
   items,
   newItem,
@@ -333,7 +380,15 @@ const AddList = ({
   onRemove,
   placeholder,
   emptyText,
-}: AddListProps) => (
+}: {
+  items: string[];
+  newItem: string;
+  setNewItem: React.Dispatch<React.SetStateAction<string>>;
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  placeholder: string;
+  emptyText: string;
+}) => (
   <div>
     <div className="flex">
       <input

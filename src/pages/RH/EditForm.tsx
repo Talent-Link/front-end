@@ -1,35 +1,65 @@
-import { useState } from "react";
-import Button from "../../components/Button";
+"use client"
+
+import { useEffect, useState } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import Button from "../../components/Button"
+
+const API_URL = import.meta.env.VITE_API_URL
 
 interface Question {
-  id: string;
-  type: "text" | "multiple";
-  question: string;
-  options?: string[];
+  id: string
+  type: "text" | "multiple"
+  question: string
+  options?: string[]
 }
 
-export default function CreateForm() {
-  const [formTitle, setFormTitle] = useState("");
-  const [formDescription, setFormDescription] = useState("");
-  const [questions, setQuestions] = useState<Question[]>([]);
+export default function EditForm() {
+  const { id } = useParams()
+  const navigate = useNavigate()
 
-  const API_URL = import.meta.env.VITE_API_URL;
+  const [formTitle, setFormTitle] = useState("")
+  const [formDescription, setFormDescription] = useState("")
+  const [questions, setQuestions] = useState<Question[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const addQuestion = (type: "text" | "multiple") => {
-    const newQuestion: Question = {
-      id: Date.now().toString(),
-      type,
-      question: "",
-      options: type === "multiple" ? [""] : undefined,
-    };
-    setQuestions([...questions, newQuestion]);
-  };
+  useEffect(() => {
+    const token = localStorage.getItem("authToken")
+    const fetchForm = async () => {
+      try {
+        const res = await fetch(`${API_URL}/forms/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        const data = await res.json()
+
+        // Adaptar estrutura recebida do backend para o formato do front
+        const formattedQuestions = data.questions.map((q: any) => ({
+          id: crypto.randomUUID(),
+          question: q.text,
+          type: q.type === "OPEN_TEXT" ? "text" : "multiple",
+          options: q.options ?? [],
+        }))
+
+        setFormTitle(data.title)
+        setFormDescription(data.description)
+        setQuestions(formattedQuestions)
+      } catch (err) {
+        alert("Erro ao carregar o formulário.")
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (id) fetchForm()
+  }, [id])
 
   const updateQuestion = (id: string, field: keyof Question, value: any) => {
-    setQuestions(
-      questions.map((q) => (q.id === id ? { ...q, [field]: value } : q))
-    );
-  };
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, [field]: value } : q))
+    )
+  }
 
   const addOption = (questionId: string) => {
     setQuestions(
@@ -38,14 +68,10 @@ export default function CreateForm() {
           ? { ...q, options: [...q.options, ""] }
           : q
       )
-    );
-  };
+    )
+  }
 
-  const updateOption = (
-    questionId: string,
-    optionIndex: number,
-    value: string
-  ) => {
+  const updateOption = (questionId: string, optionIndex: number, value: string) => {
     setQuestions(
       questions.map((q) =>
         q.id === questionId && q.options
@@ -57,12 +83,8 @@ export default function CreateForm() {
             }
           : q
       )
-    );
-  };
-
-  const removeQuestion = (id: string) => {
-    setQuestions(questions.filter((q) => q.id !== id));
-  };
+    )
+  }
 
   const removeOption = (questionId: string, optionIndex: number) => {
     setQuestions(
@@ -74,21 +96,24 @@ export default function CreateForm() {
             }
           : q
       )
-    );
-  };
+    )
+  }
+
+  const removeQuestion = (id: string) => {
+    setQuestions((prev) => prev.filter((q) => q.id !== id))
+  }
 
   const handleSubmit = async () => {
+    const token = localStorage.getItem("authToken")
     const formattedQuestions = questions.map((q) => ({
       type: q.type === "text" ? "OPEN_TEXT" : "MULTIPLE_CHOICE",
       text: q.question,
       ...(q.options ? { options: q.options } : {}),
-    }));
+    }))
 
     try {
-      const token = localStorage.getItem("authToken");
-
-      const res = await fetch(`${API_URL}/forms`, {
-        method: "POST",
+      const res = await fetch(`${API_URL}/forms/${id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -98,89 +123,34 @@ export default function CreateForm() {
           description: formDescription,
           questions: formattedQuestions,
         }),
-      });
+      })
 
-      if (!res.ok) throw new Error("Erro ao criar formulário.");
+      if (!res.ok) throw new Error("Erro ao atualizar o formulário.")
 
-      alert("Formulário criado com sucesso!");
-      setFormTitle("");
-      setFormDescription("");
-      setQuestions([]);
+      alert("Formulário atualizado com sucesso!")
+      navigate("/dashboardRH/forms")
     } catch (err) {
-      alert("Erro ao salvar o formulário.");
-      console.error(err);
+      alert("Erro ao salvar alterações.")
+      console.error(err)
     }
-  };
+  }
 
-  const generateAIQuestion = async (type: "text" | "multiple") => {
-    try {
-      const mappedType = type === "text" ? "OPEN_TEXT" : "MULTIPLE_CHOICE";
-      const token = localStorage.getItem("authToken");
-
-      const questionContext =
-        questions.length > 0
-          ? questions.map((q) => ({ text: q.question }))
-          : [{ text: "Qual sua motivação para essa vaga?" }];
-
-      const res = await fetch(`${API_URL}/forms/generate-local-question`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          type: mappedType,
-          questions: questionContext,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.text) {
-        console.error("Resposta inválida da IA:", data);
-        throw new Error("IA não retornou uma questão válida.");
-      }
-
-      const newQuestion: Question = {
-        id: Date.now().toString(),
-        type,
-        question:
-          type === "multiple"
-            ? data.text
-                .split("\n")
-                .find((line: string) => !/^[A-D][\).]/.test(line.trim()))
-                ?.trim() || data.text
-            : data.text,
-
-        options: data.options ?? [],
-      };
-
-      setQuestions((prev) => [...prev, newQuestion]);
-    } catch (err) {
-      console.error("Erro ao gerar questão com IA:", err);
-      alert("Erro ao gerar questão com IA.");
-    }
-  };
+  if (loading) return <p className="text-white">Carregando formulário...</p>
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-white">Criar Formulário</h1>
-        <p className="text-dark-300">
-          Adicione perguntas personalizadas para sua vaga.
-        </p>
+        <h1 className="text-3xl font-bold text-white">Editar Formulário</h1>
+        <p className="text-dark-300">Altere as perguntas ou o conteúdo do formulário.</p>
       </div>
 
       <div className="space-y-4">
-        <label className="block text-white font-medium">
-          Título do Formulário
-        </label>
+        <label className="block text-white font-medium">Título</label>
         <input
           type="text"
           value={formTitle}
           onChange={(e) => setFormTitle(e.target.value)}
           className="w-full p-2 bg-dark-700 border border-dark-600 text-white rounded"
-          placeholder="Ex: Processo Seletivo - Desenvolvedor(a)"
         />
 
         <label className="block text-white font-medium">Descrição</label>
@@ -188,36 +158,14 @@ export default function CreateForm() {
           value={formDescription}
           onChange={(e) => setFormDescription(e.target.value)}
           className="w-full p-2 bg-dark-700 border border-dark-600 text-white rounded min-h-[100px]"
-          placeholder="Instruções ou objetivos do formulário"
         />
       </div>
 
-      <div className="flex flex-wrap gap-4">
-        <Button onClick={() => addQuestion("text")}>
-          + Adicionar pergunta aberta
-        </Button>
-        <Button onClick={() => addQuestion("multiple")}>
-          + Adicionar múltipla escolha
-        </Button>
-        <Button onClick={() => generateAIQuestion("text")}>
-          ✨ Gerar aberta com IA
-        </Button>
-        <Button onClick={() => generateAIQuestion("multiple")}>
-          ✨ Gerar múltipla escolha com IA
-        </Button>
-      </div>
-
       {questions.map((q, i) => (
-        <div
-          key={q.id}
-          className="p-4 bg-dark-800 border border-dark-700 rounded space-y-4"
-        >
+        <div key={q.id} className="p-4 bg-dark-800 border border-dark-700 rounded space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-white font-semibold">Pergunta {i + 1}</h2>
-            <button
-              onClick={() => removeQuestion(q.id)}
-              className="text-red-400 text-sm hover:underline"
-            >
+            <button onClick={() => removeQuestion(q.id)} className="text-red-400 text-sm hover:underline">
               Remover
             </button>
           </div>
@@ -241,7 +189,6 @@ export default function CreateForm() {
               value={q.question}
               onChange={(e) => updateQuestion(q.id, "question", e.target.value)}
               className="w-full p-2 bg-dark-700 border border-dark-600 text-white rounded"
-              placeholder="Digite sua pergunta"
             />
           </div>
 
@@ -281,8 +228,8 @@ export default function CreateForm() {
       ))}
 
       <div className="text-center pt-6">
-        <Button onClick={handleSubmit}>Criar Formulário</Button>
+        <Button onClick={handleSubmit}>Salvar Alterações</Button>
       </div>
     </div>
-  );
+  )
 }

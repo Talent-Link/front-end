@@ -30,6 +30,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     { name: "Reports", icon: BarChart3, path: "reports" },
     { name: "Settings", icon: Settings, path: "settings" },
     { name: "Criar Formulário", icon: ClipboardList, path: "create-form" },
+    { name: "Meus Formulários", icon: ClipboardList, path: "forms" },
   ];
 
   const toggleSidebar = () => {

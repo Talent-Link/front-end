@@ -17,7 +17,12 @@ export interface Job {
   status: 'Open' | 'Closed' | 'Completed';
   createdAt: string;
   applicantsCount: number;
+  company?: {
+    name: string;
+    address?: string;
+  };
 }
+
 
 export interface Candidate {
   id: string;
@@ -60,3 +65,4 @@ export interface ReportData {
     qualifiedCount: number;
   }[];
 }
+

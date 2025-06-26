@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Pages - Landing Page
 import Header from "./components/components-landing-page/Header";
@@ -29,10 +31,13 @@ import TalentBank from "./pages/RH/TalentBank";
 import Reports from "./pages/RH/Reports";
 import Settings from "./pages/RH/Settings";
 import CreateForm from "./pages/RH/CreateForm";
+import FormList from "./pages/RH/FormList";
+import EditForm from "./pages/RH/EditForm";
 
 function App() {
   return (
     <Router>
+        <ToastContainer position="top-right" autoClose={3000} />
       <div className="font-sans text-gray-800 min-h-screen flex flex-col">
         <Routes>
           {/* Rota da Landing Page */}
@@ -68,14 +73,8 @@ function App() {
           />
 
           {/* Rotas para RH */}
-          <Route
-            path="/loginRH"
-            element={<LoginRH />}
-          />
-          <Route
-            path="/dashboardRH"
-            element={<DashboardLayout />}
-          >
+          <Route path="/loginRH" element={<LoginRH />} />
+          <Route path="/dashboardRH" element={<DashboardLayout />}>
             <Route index element={<DashboardRH />} />
             <Route path="create-job" element={<CreateJob />} />
             <Route path="create-form" element={<CreateForm />} />
@@ -85,6 +84,8 @@ function App() {
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
             <Route path="candidates/:jobId" element={<CandidateList />} />
+            <Route path="forms" element={<FormList />} />
+            <Route path="forms/edit/:id" element={<EditForm />} />
           </Route>
         </Routes>
       </div>

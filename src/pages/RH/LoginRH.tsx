@@ -156,14 +156,7 @@ const LoginRH: React.FC = () => {
           onClick={handleGoogleLogin}
         >
           <div className="flex items-center justify-center">
-            <svg
-              className="w-6 h-6 mr-2"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M21.35 11.1h-9.6v3.3h5.4c-.25 1.25-1 2.3-2 3l3.05 2.35c1.8-1.65 2.85-4.1 2.85-6.95 0-.65-.05-1.3-.15-1.9z" />
-            </svg>
+            <img src="/google.png" alt="Google" className="w-6 h-6 mr-2" />
             Continuar com Google
           </div>
         </Button>

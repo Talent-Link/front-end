@@ -130,15 +130,28 @@ const Dashboard: React.FC = () => {
         </div>
       </main>
 
-      <JobDetailsModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title={selectedJob.title}
-        description={selectedJob.description}
-        requirements={selectedJob.requirements}
-        jobId={selectedJob.jobId}
-        hasForm={selectedJob.hasForm}
-      />
+<JobDetailsModal
+  isOpen={isModalOpen}
+  onClose={closeModal}
+  title={selectedJob.title}
+  description={selectedJob.description}
+  requirements={
+    Array.isArray(selectedJob.requirements)
+      ? selectedJob.requirements
+      : selectedJob.requirements
+      ? selectedJob.requirements.split('\n').filter(Boolean)
+      : []
+  }
+  benefits={
+    Array.isArray((opportunities.find(j => j.id === selectedJob.jobId)?.benefits))
+      ? opportunities.find(j => j.id === selectedJob.jobId)?.benefits
+      : opportunities.find(j => j.id === selectedJob.jobId)?.benefits
+      ? opportunities.find(j => j.id === selectedJob.jobId)?.benefits.split('\n').filter(Boolean)
+      : []
+  }
+  jobId={selectedJob.jobId}
+  hasForm={selectedJob.hasForm}
+/>
 
       <footer className="p-2 bg-gray-800 text-center text-gray-500 mt-auto">
         © 2025 TalentLink. Desenvolvido por Filipi Dantas.

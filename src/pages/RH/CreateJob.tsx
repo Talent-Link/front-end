@@ -1,23 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Plus,
-  X,
-  FileText,
-  BriefcaseBusiness,
-  MapPin,
-  Star,
-} from "lucide-react";
+import { FileText, BriefcaseBusiness, MapPin, Star } from "lucide-react";
 import { Job } from "../../types";
 
-const emptyJob: Omit<Job, "id" | "createdAt" | "applicantsCount"> & {
+interface Company {
+  id: string;
+  name: string;
+}
+interface Form {
+  id: string;
+  title: string;
+}
+interface CreateJobState
+  extends Omit<
+    Job,
+    "id" | "createdAt" | "applicantsCount" | "requirements" | "benefits"
+  > {
+  requirements: string;
+  benefits: string;
   formId?: string;
   companyId?: string;
-} = {
+}
+
+const emptyJob: CreateJobState = {
   title: "",
   description: "",
-  requirements: [],
-  benefits: [],
+  requirements: "",
+  benefits: "",
   type: "Remote",
   location: "",
   status: "Open",
@@ -26,20 +35,16 @@ const emptyJob: Omit<Job, "id" | "createdAt" | "applicantsCount"> & {
 };
 
 const CreateJob = () => {
-  const [job, setJob] = useState(emptyJob);
-  const [newRequirement, setNewRequirement] = useState("");
-  const [newBenefit, setNewBenefit] = useState("");
-  const [companies, setCompanies] = useState<{ id: string; name: string }[]>(
-    []
-  );
+  const [job, setJob] = useState<CreateJobState>(emptyJob);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [forms, setForms] = useState<Form[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [forms, setForms] = useState<{ id: string; title: string }[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem("authToken");
-
       try {
         const [companyRes, formRes] = await Promise.all([
           fetch(`${import.meta.env.VITE_API_URL}/empresa/rh`, {
@@ -49,102 +54,74 @@ const CreateJob = () => {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
-
-        if (companyRes.ok) {
-          const companyData = await companyRes.json();
-          setCompanies(companyData);
-        }
-
-        if (formRes.ok) {
-          const formData = await formRes.json();
-          setForms(formData);
-        }
+        if (companyRes.ok) setCompanies(await companyRes.json());
+        if (formRes.ok) setForms(await formRes.json());
       } catch (err) {
-        console.error("Erro ao buscar dados:", err);
+        setError("Erro ao buscar dados.");
       }
     };
-
     fetchData();
   }, []);
 
-  const handleInputChange = (field: keyof typeof job, value: string) => {
-    setJob({ ...job, [field]: value });
-  };
+  const handleInputChange = useCallback(
+    (field: keyof CreateJobState, value: string) => {
+      setJob((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
 
-  const handleAddItem = (
-    field: "requirements" | "benefits",
-    value: string,
-    setter: React.Dispatch<React.SetStateAction<string>>
-  ) => {
-    if (value.trim()) {
-      setJob({ ...job, [field]: [...job[field], value.trim()] });
-      setter("");
-    }
-  };
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsSubmitting(true);
+      setError(null);
 
-  const handleRemoveItem = (
-    field: "requirements" | "benefits",
-    index: number
-  ) => {
-    setJob({ ...job, [field]: job[field].filter((_, i) => i !== index) });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const token = localStorage.getItem("authToken");
-      const companyId = job.companyId;
-
-      // Validação básica antes de enviar
-      if (!job.title || !job.description || !job.location || !companyId) {
-        alert("Preencha todos os campos obrigatórios, incluindo a empresa.");
+      const { title, description, location, companyId } = job;
+      if (!title || !description || !location || !companyId) {
+        setError("Preencha todos os campos obrigatórios, incluindo a empresa.");
         setIsSubmitting(false);
         return;
       }
 
-      const payload = {
-        ...job,
-        companyId,
-      };
-
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/opportunities`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText);
+      try {
+        const token = localStorage.getItem("authToken");
+        const payload = { ...job, companyId };
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/opportunities`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+        if (!res.ok) throw new Error(await res.text());
+        alert("Oportunidade criada com sucesso!");
+        navigate("/dashboardRH/manage-jobs");
+      } catch (err) {
+        setError(
+          "Erro ao criar oportunidade. Verifique se todos os dados estão corretos."
+        );
+      } finally {
+        setIsSubmitting(false);
       }
-
-      alert("Oportunidade criada com sucesso!");
-      console.log("Payload enviado:", payload);
-      navigate("/dashboardRH/manage-jobs");
-    } catch (err) {
-      console.error("Erro ao criar vaga:", err);
-      alert(
-        "Erro ao criar oportunidade. Verifique se todos os dados estão corretos."
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+    [job, navigate]
+  );
 
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold ">Criar Nova Vaga</h1>
+        <h1 className="text-3xl font-bold text-white">Criar Nova Vaga</h1>
         <p className="text-dark-300 mt-1">
           Preencha os detalhes para publicar uma nova vaga
         </p>
       </div>
-
+      {error && (
+        <div className="mb-4 text-red-500 bg-red-100 rounded p-2">{error}</div>
+      )}
       <form onSubmit={handleSubmit} className="card space-y-8">
         <Section
           title="Informações Básicas"
@@ -167,7 +144,6 @@ const CreateJob = () => {
             required
           />
         </Section>
-
         <Section
           title="Tipo e Localização"
           icon={<BriefcaseBusiness size={20} className="mr-2 text-pink-500" />}
@@ -196,38 +172,88 @@ const CreateJob = () => {
             />
           </div>
         </Section>
-
         <Section
           title="Requisitos"
           icon={<Star size={20} className="mr-2 text-pink-500" />}
         >
-          <AddList
-            items={job.requirements}
-            newItem={newRequirement}
-            setNewItem={setNewRequirement}
-            onAdd={() =>
-              handleAddItem("requirements", newRequirement, setNewRequirement)
-            }
-            onRemove={(index) => handleRemoveItem("requirements", index)}
-            placeholder="Ex: 3+ anos com React"
-            emptyText="Nenhum requisito adicionado"
-          />
+          <div className="space-y-2">
+            {job.requirements
+              .split("\n")
+              .filter((req) => req.trim() !== "")
+              .map((req, idx, arr) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <span className="flex-1 bg-dark-800 rounded px-3 py-2 text-dark-100">
+                    {req}
+                  </span>
+                  <button
+                    type="button"
+                    className="text-red-400 hover:text-red-600 text-sm"
+                    onClick={() => {
+                      const newReqs = arr
+                        .filter((_, i) => i !== idx)
+                        .join("\n");
+                      setJob((prev) => ({ ...prev, requirements: newReqs }));
+                    }}
+                  >
+                    Remover
+                  </button>
+                </div>
+              ))}
+
+            <AddRequirementInput
+              onAdd={(newReq) => {
+                if (newReq.trim()) {
+                  setJob((prev) => ({
+                    ...prev,
+                    requirements: prev.requirements
+                      ? `${prev.requirements}\n${newReq.trim()}`
+                      : newReq.trim(),
+                  }));
+                }
+              }}
+            />
+          </div>
         </Section>
 
         <Section
-          title="Benefícios"
-          icon={<Star size={20} className="mr-2 text-pink-500" />}
-        >
-          <AddList
-            items={job.benefits}
-            newItem={newBenefit}
-            setNewItem={setNewBenefit}
-            onAdd={() => handleAddItem("benefits", newBenefit, setNewBenefit)}
-            onRemove={(index) => handleRemoveItem("benefits", index)}
-            placeholder="Ex: Plano de saúde, VR, etc."
-            emptyText="Nenhum benefício adicionado"
-          />
-        </Section>
+  title="Benefícios"
+  icon={<Star size={20} className="mr-2 text-pink-500" />}
+>
+  <div className="space-y-2">
+    {job.benefits
+      .split("\n")
+      .filter((b) => b.trim() !== "")
+      .map((b, idx, arr) => (
+        <div key={idx} className="flex items-center gap-2">
+          <span className="flex-1 bg-dark-800 rounded px-3 py-2 text-dark-100">
+            {b}
+          </span>
+          <button
+            type="button"
+            className="text-red-400 hover:text-red-600 text-sm"
+            onClick={() => {
+              const newBenefits = arr.filter((_, i) => i !== idx).join("\n");
+              setJob((prev) => ({ ...prev, benefits: newBenefits }));
+            }}
+          >
+            Remover
+          </button>
+        </div>
+      ))}
+    <AddBenefitInput
+      onAdd={(newBenefit) => {
+        if (newBenefit.trim()) {
+          setJob((prev) => ({
+            ...prev,
+            benefits: prev.benefits
+              ? `${prev.benefits}\n${newBenefit.trim()}`
+              : newBenefit.trim(),
+          }));
+        }
+      }}
+    />
+  </div>
+</Section>
 
         <Section
           title="Empresa"
@@ -245,7 +271,6 @@ const CreateJob = () => {
             required
           />
         </Section>
-
         <Section
           title="Formulário Vinculado"
           icon={<FileText size={20} className="mr-2 text-pink-500" />}
@@ -261,7 +286,6 @@ const CreateJob = () => {
             ]}
           />
         </Section>
-
         <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-dark-700">
           <button
             type="submit"
@@ -287,8 +311,7 @@ const CreateJob = () => {
   );
 };
 
-// Componentes auxiliares
-const Section = ({
+function Section({
   title,
   icon,
   children,
@@ -296,142 +319,153 @@ const Section = ({
   title: string;
   icon: React.ReactNode;
   children: React.ReactNode;
-}) => (
-  <div className="space-y-6">
-    <h2 className="text-xl font-semibold flex items-center">
-      {icon}
-      {title}
-    </h2>
-    {children}
-  </div>
-);
+}) {
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold flex items-center">
+        {icon}
+        {title}
+      </h2>
+      {children}
+    </div>
+  );
+}
 
-const Input = ({
+function Input({
   label,
   icon,
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   icon?: React.ReactNode;
-}) => (
-  <div>
-    <label
-      htmlFor={props.id}
-      className="block text-sm font-medium text-dark-200 mb-2"
-    >
-      {label}
-    </label>
-    <div className="relative">
-      {icon && (
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          {icon}
-        </div>
-      )}
-      <input {...props} className={`form-input ${icon ? "pl-10" : ""}`} />
+}) {
+  return (
+    <div>
+      <label
+        htmlFor={props.id}
+        className="block text-sm font-medium text-dark-200 mb-2"
+      >
+        {label}
+      </label>
+      <div className="relative">
+        {icon && (
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            {icon}
+          </div>
+        )}
+        <input {...props} className={`form-input ${icon ? "pl-10" : ""}`} />
+      </div>
     </div>
-  </div>
-);
+  );
+}
 
-const Textarea = ({
+function Textarea({
   label,
   ...props
-}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) => (
-  <div>
-    <label
-      htmlFor={props.id}
-      className="block text-sm font-medium text-dark-200 mb-2"
-    >
-      {label}
-    </label>
-    <textarea {...props} className="form-input min-h-32" />
-  </div>
-);
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) {
+  return (
+    <div>
+      <label
+        htmlFor={props.id}
+        className="block text-sm font-medium text-dark-200 mb-2"
+      >
+        {label}
+      </label>
+      <textarea {...props} className="form-input min-h-32" />
+    </div>
+  );
+}
 
-const Select = ({
+function Select({
   label,
   options,
   ...props
 }: React.SelectHTMLAttributes<HTMLSelectElement> & {
   label: string;
   options: { value: string; label: string }[];
-}) => (
-  <div>
-    <label
-      htmlFor={props.id}
-      className="block text-sm font-medium text-dark-200 mb-2"
-    >
-      {label}
-    </label>
-    <select {...props} className="form-input">
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
-  </div>
-);
+}) {
+  return (
+    <div>
+      <label
+        htmlFor={props.id}
+        className="block text-sm font-medium text-dark-200 mb-2"
+      >
+        {label}
+      </label>
+      <select {...props} className="form-input">
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
-const AddList = ({
-  items,
-  newItem,
-  setNewItem,
-  onAdd,
-  onRemove,
-  placeholder,
-  emptyText,
-}: {
-  items: string[];
-  newItem: string;
-  setNewItem: React.Dispatch<React.SetStateAction<string>>;
-  onAdd: () => void;
-  onRemove: (index: number) => void;
-  placeholder: string;
-  emptyText: string;
-}) => (
-  <div>
-    <div className="flex">
+function AddRequirementInput({ onAdd }: { onAdd: (value: string) => void }) {
+  const [value, setValue] = useState("");
+
+  const handleAdd = () => {
+    if (value.trim()) {
+      onAdd(value);
+      setValue("");
+    }
+  };
+
+  return (
+    <div className="flex gap-2 mt-2">
       <input
         type="text"
-        value={newItem}
-        onChange={(e) => setNewItem(e.target.value)}
-        className="form-input flex-grow"
-        placeholder={placeholder}
+        className="form-input flex-1"
+        placeholder="Adicionar requisito"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
-            onAdd();
+            handleAdd();
           }
         }}
       />
-      <button type="button" onClick={onAdd} className="btn btn-primary ml-2">
-        <Plus size={20} />
+      <button type="button" className="btn btn-secondary" onClick={handleAdd}>
+        Adicionar
       </button>
     </div>
-    <div className="mt-4">
-      {items.length > 0 ? (
-        <ul className="space-y-2">
-          {items.map((item, index) => (
-            <li
-              key={index}
-              className="flex items-center justify-between p-3 bg-dark-700 rounded-md"
-            >
-              <span>{item}</span>
-              <button
-                type="button"
-                onClick={() => onRemove(index)}
-                className="text-dark-300 hover:text-red-400"
-              >
-                <X size={18} />
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-dark-400 text-sm">{emptyText}</p>
-      )}
+  );
+}
+
+// AddBenefitInput component, similar to AddRequirementInput
+function AddBenefitInput({ onAdd }: { onAdd: (value: string) => void }) {
+  const [value, setValue] = useState("");
+
+  const handleAdd = () => {
+    if (value.trim()) {
+      onAdd(value);
+      setValue("");
+    }
+  };
+
+  return (
+    <div className="flex gap-2 mt-2">
+      <input
+        type="text"
+        className="form-input flex-1"
+        placeholder="Adicionar benefício"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleAdd();
+          }
+        }}
+      />
+      <button type="button" className="btn btn-secondary" onClick={handleAdd}>
+        Adicionar
+      </button>
     </div>
-  </div>
-);
+  );
+}
 
 export default CreateJob;

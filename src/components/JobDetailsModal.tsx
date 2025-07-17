@@ -6,7 +6,8 @@ interface JobDetailsModalProps {
   onClose: () => void;
   title: string;
   description: string;
-  requirements: string;
+  requirements: string[];
+  benefits: string[];
   jobId: string;
   hasForm: boolean;
 }
@@ -17,6 +18,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
   title,
   description,
   requirements,
+  benefits,
   jobId,
   hasForm
 }) => {
@@ -28,14 +30,34 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
         <h2 className="text-2xl font-bold mb-2">{title}</h2>
         <p className="text-gray-400 mb-4">{description}</p>
 
-        <h4 className="font-bold">Requisitos:</h4>
-        <p className="text-gray-400 mb-4">{requirements}</p>
+        <h4 className="font-bold mb-1">Requisitos:</h4>
+        <ul className="text-gray-400 mb-4 list-disc list-inside space-y-1">
+          {requirements.length > 0 ? (
+            requirements.map((req, index) => (
+              <li key={index}>{req}</li>
+            ))
+          ) : (
+            <li>Nenhum requisito informado.</li>
+          )}
+        </ul>
+
+        <h4 className="font-bold mb-1">Benefícios:</h4>
+        <ul className="text-gray-400 mb-4 list-disc list-inside space-y-1">
+          {benefits.length > 0 ? (
+            benefits.map((benefit, index) => (
+              <li key={index}>{benefit}</li>
+            ))
+          ) : (
+            <li>Nenhum benefício informado.</li>
+          )}
+        </ul>
 
         <div className="flex justify-end gap-2">
           {hasForm && (
             <Button
-             
-              onClick={() => window.location.href = `/candidato/oportunidade/${jobId}`}
+              onClick={() =>
+                (window.location.href = `/candidato/oportunidade/${jobId}`)
+              }
             >
               Candidatar-se
             </Button>

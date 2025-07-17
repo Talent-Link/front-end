@@ -29,7 +29,7 @@ const diferencial: React.FC = () => {
     <section className="py-20 bg-white">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">A Diferença TalentLink</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-purple-600">A Diferença TalentLink</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Veja como nosso sistema transforma o recrutamento em comparação aos métodos tradicionais.
           </p>

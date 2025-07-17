@@ -40,13 +40,45 @@ const ManageJobs = () => {
           }
         };
 
-        const jobsWithExtras = data.map((job: any) => ({
-          ...job,
-          status: job.isActive ? "Open" : "Closed",
-          applicantsCount: job.responses?.length || 0,
-          requirements: parseSafe(job.requirements),
-          benefits: parseSafe(job.benefits),
-        }));
+        const fetchApplicantsCount = async (id: string): Promise<number> => {
+          try {
+            const token = localStorage.getItem("authToken");
+
+            const res = await fetch(
+              `${
+                import.meta.env.VITE_API_URL
+              }/opportunities/${id}/candidates-count`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            if (!res.ok) {
+              throw new Error("Erro ao contar candidatos.");
+            }
+
+            const data = await res.json();
+            return data.candidatosCount ?? 0;
+          } catch (error) {
+            console.error(`Erro ao contar candidatos da vaga ${id}:`, error);
+            return 0;
+          }
+        };
+
+        const jobsWithExtras = await Promise.all(
+          data.map(async (job: any) => {
+            const applicantsCount = await fetchApplicantsCount(job.id);
+            return {
+              ...job,
+              status: job.isActive ? "Open" : "Closed",
+              applicantsCount,
+              requirements: parseSafe(job.requirements),
+              benefits: parseSafe(job.benefits),
+            };
+          })
+        );
 
         setJobs(jobsWithExtras);
         setFilteredJobs(jobsWithExtras);
@@ -72,6 +104,7 @@ const ManageJobs = () => {
       );
     }
 
+    // Apply status filter
     if (statusFilter !== "all") {
       results = results.filter((job) => job.status === statusFilter);
     }

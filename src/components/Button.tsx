@@ -23,7 +23,7 @@ const Button: React.FC<ButtonProps> = ({
 const sizeClasses = {
   sm: 'text-sm py-1.5 px-3',
   md: 'py-2 px-4',
-  lg: 'text-lg py-3 px-6', // aumente aqui
+  lg: 'text-lg py-3 px-6',
 };
   
   const variantClasses = {

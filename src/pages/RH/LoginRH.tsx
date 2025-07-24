@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Button from "../../components/Button";
+import { useGoogleLogin } from "../../hooks/useGoogleLogin";
 import "../../styles/Candidato/login.css";
 
 const LoginRH: React.FC = () => {
@@ -7,6 +8,7 @@ const LoginRH: React.FC = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const googleLogin = useGoogleLogin();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,26 +48,7 @@ const LoginRH: React.FC = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.open(
-      "https://talentlink-wd88.onrender.com/auth/google/RH",
-      "_blank",
-      "width=500,height=600"
-    );
-
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== "https://talentlink-wd88.onrender.com") return;
-
-      const { token, user } = event.data;
-
-      if (token) {
-        localStorage.setItem("authToken", token);
-        localStorage.setItem("user", JSON.stringify(user));
-        window.removeEventListener("message", handleMessage);
-        window.location.href = "/dashboardRH";
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
+    googleLogin('RH');
   };
 
   return (

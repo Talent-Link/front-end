@@ -33,6 +33,7 @@ import Settings from "./pages/RH/Settings";
 import CreateForm from "./pages/RH/CreateForm";
 import FormList from "./pages/RH/FormList";
 import EditForm from "./pages/RH/EditForm";
+import AuthCallback from "./components/AuthCallback";
 
 function App() {
   return (
@@ -61,10 +62,14 @@ function App() {
 
           {/* Rota das telas (Candidato ou Empresa) */}
           <Route path="/ChoiceScreen" element={<ChoiceScreen />} />
+          
+          {/* Rota para o callback de autenticação */}
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
           {/* Rota para o login do Candidato */}
           <Route path="/loginCandidato" element={<LoginCandidato />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/candidato/dashboard" element={<Dashboard />} />
           <Route path="/feedbacks" element={<Feedbacks />} />
           <Route path="/candidaturas" element={<Candidaturas />} />
           <Route
@@ -74,6 +79,19 @@ function App() {
 
           {/* Rotas para RH */}
           <Route path="/loginRH" element={<LoginRH />} />
+          <Route path="/rh/dashboard" element={<DashboardLayout />}>
+            <Route index element={<DashboardRH />} />
+            <Route path="create-job" element={<CreateJob />} />
+            <Route path="create-form" element={<CreateForm />} />
+            <Route path="manage-jobs" element={<ManageJobs />} />
+            <Route path="candidate/:id" element={<CandidateProfile />} />
+            <Route path="talent-bank" element={<TalentBank />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="candidates/:jobId" element={<CandidateList />} />
+            <Route path="forms" element={<FormList />} />
+            <Route path="forms/edit/:id" element={<EditForm />} />
+          </Route>
           <Route path="/dashboardRH" element={<DashboardLayout />}>
             <Route index element={<DashboardRH />} />
             <Route path="create-job" element={<CreateJob />} />

@@ -47,27 +47,27 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   return (
     <>
-      <div className="flex h-full">
+      <div className="flex h-screen bg-dark-900">
         {/* Mobile sidebar toggle */}
         <button
           type="button"
-          className="lg:hidden fixed z-50 bottom-4 right-4 p-3 rounded-full bg-gradient-primary text-white shadow-lg"
+          className="lg:hidden fixed z-50 top-4 left-4 p-2 rounded-md bg-gradient-primary text-white shadow-lg"
           onClick={toggleSidebar}
         >
-          {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
 
         {/* Sidebar */}
         <aside
-          className={`fixed lg:relative inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 bg-dark-800 border-r border-dark-700 ${
+          className={`fixed lg:static inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out bg-dark-800 border-r border-dark-700 ${
             isSidebarOpen
               ? "translate-x-0"
               : "-translate-x-full lg:translate-x-0"
           }`}
         >
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-screen">
             {/* Logo */}
-            <div className="p-4 border-b border-dark-700">
+            <div className="flex-shrink-0 p-4 border-b border-dark-700">
               <div className="flex items-center">
                 <span className="text-xl font-bold gradient-text">
                   TalentLink
@@ -76,7 +76,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+            <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-dark-600 scrollbar-track-dark-800">
               {navigation.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
@@ -96,30 +96,35 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                         isActive ? "text-white" : "text-dark-300"
                       }`}
                     />
-                    <span>{item.name}</span>
+                    <span className="text-sm font-medium">{item.name}</span>
                   </NavLink>
                 );
               })}
             </nav>
 
             {/* Logout button */}
-            <div className="p-4 border-t border-dark-700">
+            <div className="flex-shrink-0 p-4 border-t border-dark-700">
               <button
                 type="button"
                 className="flex items-center w-full px-4 py-3 text-dark-200 rounded-md hover:bg-dark-700 transition-colors"
                 onClick={() => setShowLogoutModal(true)}
               >
                 <LogOut size={20} className="mr-3 text-dark-300" />
-                <span>Logout</span>
+                <span className="text-sm font-medium">Logout</span>
               </button>
             </div>
           </div>
         </aside>
 
         {/* Main content */}
-        <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <div className="flex-1 flex flex-col min-h-0 lg:ml-0">
+          {/* Header for mobile */}
+          <div className="lg:hidden bg-dark-800 border-b border-dark-700 p-4 pl-16">
+            <span className="text-lg font-semibold text-white">Dashboard</span>
+          </div>
+          
           {/* Content */}
-          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+          <main className="flex-1 overflow-y-auto bg-dark-900 p-4 md:p-6 lg:p-8">
             {children ?? <Outlet />}
           </main>
         </div>
@@ -127,15 +132,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         {/* Mobile sidebar overlay */}
         {isSidebarOpen && (
           <div
-            className="fixed inset-0 z-30 bg-dark-900 bg-opacity-70 lg:hidden"
+            className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
       </div>
 
+      {/* Logout Modal */}
       {showLogoutModal && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-dark-800 p-6 rounded-lg shadow-lg w-full max-w-sm">
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-dark-800 p-6 rounded-lg shadow-xl w-full max-w-md">
             <h2 className="text-xl font-semibold text-white mb-4">
               Deseja sair?
             </h2>
@@ -144,13 +150,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </p>
             <div className="flex justify-end space-x-4">
               <button
-                className="px-4 py-2 rounded-md bg-dark-700 text-white hover:bg-dark-600 transition"
+                className="px-4 py-2 rounded-md bg-dark-700 text-white hover:bg-dark-600 transition-colors"
                 onClick={() => setShowLogoutModal(false)}
               >
                 Cancelar
               </button>
               <button
-                className="px-4 py-2 rounded-md bg-pink-600 text-white hover:bg-pink-500 transition"
+                className="px-4 py-2 rounded-md bg-pink-600 text-white hover:bg-pink-500 transition-colors"
                 onClick={handleLogout}
               >
                 Confirmar

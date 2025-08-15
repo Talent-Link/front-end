@@ -13,12 +13,13 @@ const TelaInicial: React.FC = () => {
               Automatize a triagem de currículos, gere relatórios inteligentes e otimize o seu processo seletivo de forma rápida e eficiente.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="px-8 py-4 rounded-full font-bold bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                <button 
+                className="px-8 py-4 rounded-full font-bold bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+                onClick={() => window.location.href = '/choiceScreen'}
+                >
                 Experimente o TalentLink Gratuitamente
-              </button>
-              <button className="px-8 py-4 rounded-full font-bold border-2 border-purple-300 text-purple-600 hover:bg-purple-50 transform hover:-translate-y-1 transition-all duration-300">
-                Agende uma Demo
-              </button>
+                </button>
+           
             </div>
           </div>
           <div className="w-full lg:w-1/2 relative">

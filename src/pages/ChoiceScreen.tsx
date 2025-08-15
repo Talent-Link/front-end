@@ -31,7 +31,7 @@ const ChoiceScreen: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="bg-gray-800 p-6 rounded-xl flex flex-col items-center text-center transition duration-300 hover:scale-105">
+                {/* <div className="bg-gray-800 p-6 rounded-xl flex flex-col items-center text-center transition duration-300 hover:scale-105">
                     <Briefcase className="w-16 h-16 text-purple-500 mb-4" />
                     <h2 className="text-2xl font-semibold">Entrar como Empresa</h2>
                     <p className="text-gray-400 mt-2 mb-4">Gerencie vagas e encontre os melhores talentos.</p>
@@ -41,7 +41,7 @@ const ChoiceScreen: React.FC = () => {
                     >
                         Acessar como Empresa
                     </button>
-                </div>
+                </div> */}
             </div>
         </div>
     );

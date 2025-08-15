@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from "react";
 import JobDetailsModal from "../../components/JobDetailsModal";
+import ResumeAnalysisModal from "../../components/ResumeAnalysisModal";
 import { FaFilter } from "react-icons/fa";
+import { Brain, Sparkles } from "lucide-react";
 import HeaderCandidato from "../../components/headerCandidato";
 import api from "../../services/api";
+import { useResumeAnalysis } from "../../hooks/useResumeAnalysis";
 
 const Dashboard: React.FC = () => {
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showResumeAnalysis, setShowResumeAnalysis] = useState(false);
   const [selectedJob, setSelectedJob] = useState({
     title: "",
     description: "",
@@ -18,6 +22,8 @@ const Dashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  
+  const { canAnalyze, cooldownRemaining, formatCooldownTime } = useResumeAnalysis();
 
   useEffect(() => {
     const fetchOpportunities = async () => {
@@ -70,7 +76,33 @@ const Dashboard: React.FC = () => {
       <HeaderCandidato />
 
       <main className="p-8 flex-grow">
-        <h2 className="text-2xl font-bold mb-2">Banco de Oportunidades</h2>
+        {/* Header com botão de análise */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">Banco de Oportunidades</h2>
+            <p className="text-gray-400">Encontre as melhores oportunidades para seu perfil</p>
+          </div>
+          
+          {/* Botão de Análise de Currículo */}
+          <div className="mt-4 lg:mt-0">
+            <button
+              onClick={() => setShowResumeAnalysis(true)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-md group relative ${
+                canAnalyze 
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white' 
+                  : 'bg-yellow-600 hover:bg-yellow-700 text-white'
+              }`}
+              title={canAnalyze 
+                ? '✨ Analisar meu currículo com Inteligência Artificial - Receba sugestões personalizadas para melhorar seu perfil!' 
+                : `⏰ Próxima análise de IA disponível em ${formatCooldownTime(cooldownRemaining)} - Aguarde para obter novas sugestões!`
+              }
+            >
+              <Brain size={16} />
+              <Sparkles size={14} className="text-yellow-200" />
+              {canAnalyze ? 'IA' : formatCooldownTime(cooldownRemaining)}
+            </button>
+          </div>
+        </div>
 
         <div className="relative mb-4">
           <input
@@ -152,6 +184,13 @@ const Dashboard: React.FC = () => {
   jobId={selectedJob.jobId}
   hasForm={selectedJob.hasForm}
 />
+
+      {/* Modal de Análise de Currículo */}
+      {showResumeAnalysis && (
+        <ResumeAnalysisModal
+          onClose={() => setShowResumeAnalysis(false)}
+        />
+      )}
 
       <footer className="p-2 bg-gray-800 text-center text-gray-500 mt-auto">
         © 2025 TalentLink. Desenvolvido por Filipi Dantas.

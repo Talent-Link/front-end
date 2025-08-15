@@ -12,10 +12,39 @@ import {
   FileText,
   Briefcase,
   GraduationCap,
-  Star
+  Star,
+  Brain,
+  Sparkles
 } from 'lucide-react';
 import HeaderCandidato from '../../components/headerCandidato';
-import { profileService, ProfileData, Experience, Education } from '../../services/profileService';
+import ResumeAnalysisModal from '../../components/ResumeAnalysisModal';
+import { profileService } from '../../services/profileService';
+import { useResumeAnalysis } from '../../hooks/useResumeAnalysis';
+
+// Types
+interface Experience {
+  position: string;
+  company: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+}
+
+interface Education {
+  institution: string;
+  course: string;
+  degree: string;
+  startYear: number;
+  endYear: number;
+}
+
+interface ProfileData {
+  phoneNumber: string;
+  skills: string[];
+  resumeUrl: string;
+  experiences: Experience[];
+  educations: Education[];
+}
 
 const PerfilCandidato: React.FC = () => {
   const navigate = useNavigate();
@@ -25,8 +54,10 @@ const PerfilCandidato: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [currentSkill, setCurrentSkill] = useState('');
+  const [showResumeAnalysis, setShowResumeAnalysis] = useState(false);
   
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { canAnalyze, cooldownRemaining, formatCooldownTime } = useResumeAnalysis();
   
   const [profileData, setProfileData] = useState<ProfileData>({
     phoneNumber: '',
@@ -265,18 +296,48 @@ const PerfilCandidato: React.FC = () => {
       
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header da página */}
-        <div className="flex items-center gap-4 mb-8">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-              Meu Perfil
-            </h1>
-            <p className="text-gray-400">Complete seu perfil para receber melhores oportunidades</p>
+        <div className="flex flex-col gap-4 mb-8">
+          {/* Primeira linha: Botão voltar + Título */}
+          <div className="flex items-start gap-3 md:gap-4">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="flex-shrink-0 p-2 md:p-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors mt-1"
+            >
+              <ArrowLeft size={18} className="md:w-5 md:h-5" />
+            </button>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent leading-tight">
+                Meu Perfil
+              </h1>
+              <p className="text-gray-400 text-sm md:text-base mt-1 md:mt-2">
+                Complete seu perfil para receber melhores oportunidades
+              </p>
+            </div>
+          </div>
+          
+          {/* Segunda linha: Botão de Análise de Currículo */}
+          <div className="flex justify-end">
+            <button
+              onClick={() => setShowResumeAnalysis(true)}
+              className={`flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 rounded-lg text-sm md:text-base font-medium transition-all duration-200 shadow-md group relative ${
+                canAnalyze 
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white' 
+                  : 'bg-yellow-600 hover:bg-yellow-700 text-white'
+              }`}
+              title={canAnalyze 
+                ? '✨ Análise inteligente do seu perfil - Descubra pontos fortes e receba dicas exclusivas para destacar seu currículo!' 
+                : `⏳ Cooldown ativo - Nova análise personalizada disponível em ${formatCooldownTime(cooldownRemaining)}. Vale a pena esperar!`
+              }
+            >
+              <Brain size={16} className="md:w-5 md:h-5" />
+              <Sparkles size={14} className="text-yellow-200 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">
+                {canAnalyze ? 'IA' : formatCooldownTime(cooldownRemaining)}
+              </span>
+              <span className="sm:hidden">
+                {canAnalyze ? 'IA' : '⏳'}
+              </span>
+            </button>
           </div>
         </div>
 
@@ -339,78 +400,83 @@ const PerfilCandidato: React.FC = () => {
 
           {/* Upload de Currículo */}
           <div className="bg-gray-800 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
               <FileText size={20} className="text-pink-500" />
               Currículo
             </h2>
             
-            <div className="space-y-4">
-              {profileData.resumeUrl && (
-                <div className="p-4 bg-gray-700 rounded-lg border border-green-600">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-shrink-0">
-                        <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-                          <FileText size={20} className="text-white" />
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="text-green-400 font-medium">Currículo disponível</h4>
-                        <p className="text-gray-400 text-sm">
-                          {profileData.resumeUrl.startsWith('data:') 
-                            ? 'Arquivo enviado (PDF)' 
-                            : 'Link para currículo externo'
-                          }
-                        </p>
+            {profileData.resumeUrl ? (
+              /* Currículo já enviado */
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-700 rounded-lg border-2 border-green-500">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                        <FileText size={20} className="text-white" />
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (profileData.resumeUrl.startsWith('data:')) {
-                            // É um arquivo base64, criar blob para download
-                            const link = document.createElement('a');
-                            link.href = profileData.resumeUrl;
-                            link.download = 'curriculo.pdf';
-                            link.click();
-                          } else {
-                            // É uma URL externa
-                            window.open(profileData.resumeUrl, '_blank');
-                          }
-                        }}
-                        className="px-3 py-1 bg-pink-600 hover:bg-pink-700 text-white rounded text-sm transition-colors"
-                      >
-                        Visualizar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleDeleteResume}
-                        disabled={isLoading || isUploading}
-                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isLoading ? 'Excluindo...' : 'Excluir'}
-                      </button>
+                    <div className="flex-1">
+                      <h4 className="text-green-400 font-semibold">Currículo disponível</h4>
+                      <p className="text-gray-400 text-sm">
+                        Arquivo enviado (PDF)
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (profileData.resumeUrl.startsWith('data:')) {
+                          // É um arquivo base64, criar blob para download
+                          const link = document.createElement('a');
+                          link.href = profileData.resumeUrl;
+                          link.download = 'curriculo.pdf';
+                          link.click();
+                        } else {
+                          // É uma URL externa
+                          window.open(profileData.resumeUrl, '_blank');
+                        }
+                      }}
+                      className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Visualizar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteResume}
+                      disabled={isLoading || isUploading}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? 'Excluindo...' : 'Excluir'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-yellow-900/20 border border-yellow-600 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <span className="text-yellow-400 text-lg">⚠️</span>
+                    <div>
+                      <p className="text-yellow-200 font-medium text-sm">Novo upload substituirá o atual</p>
+                      <p className="text-yellow-300 text-xs">Apenas arquivos PDF (máx. 5MB)</p>
                     </div>
                   </div>
                 </div>
-              )}
-              
-              <div className="flex items-center gap-4">
-                <label className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-colors ${
+
+                <label className={`flex items-center justify-center gap-3 px-6 py-4 rounded-lg cursor-pointer transition-all duration-200 border-2 border-dashed ${
                   isUploading 
-                    ? 'bg-gray-600 cursor-not-allowed' 
-                    : 'bg-pink-600 hover:bg-pink-700'
+                    ? 'bg-gray-600 border-gray-500 cursor-not-allowed' 
+                    : 'bg-pink-600/10 border-pink-500 hover:bg-pink-600/20 hover:border-pink-400'
                 }`}>
                   {isUploading ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Enviando...
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-pink-400"></div>
+                      <span className="text-pink-300 font-medium">Enviando...</span>
                     </>
                   ) : (
                     <>
-                      <Upload size={16} />
-                      {profileData.resumeUrl ? 'Substituir Currículo' : 'Enviar Currículo (PDF)'}
+                      <Upload size={20} className="text-pink-400" />
+                      <span className="text-pink-300 font-medium">Substituir Currículo</span>
                     </>
                   )}
                   <input
@@ -421,34 +487,73 @@ const PerfilCandidato: React.FC = () => {
                     disabled={isUploading || isLoading}
                   />
                 </label>
-                <div className="text-sm text-gray-400">
-                  <p>Apenas arquivos PDF (máx. 5MB)</p>
-                  {profileData.resumeUrl && (
-                    <p className="text-yellow-400">⚠️ Novo upload substituirá o atual</p>
+              </div>
+            ) : (
+              /* Nenhum currículo enviado */
+              <div className="space-y-4">
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <FileText size={24} className="text-gray-400" />
+                  </div>
+                  <h4 className="text-gray-300 font-medium mb-2">Nenhum currículo enviado</h4>
+                  <p className="text-gray-400 text-sm">Adicione seu currículo para ter mais oportunidades</p>
+                </div>
+
+                <label className={`flex items-center justify-center gap-3 px-6 py-4 rounded-lg cursor-pointer transition-all duration-200 border-2 border-dashed ${
+                  isUploading 
+                    ? 'bg-gray-600 border-gray-500 cursor-not-allowed' 
+                    : 'bg-pink-600/10 border-pink-500 hover:bg-pink-600/20 hover:border-pink-400'
+                }`}>
+                  {isUploading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-pink-400"></div>
+                      <span className="text-pink-300 font-medium">Enviando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={20} className="text-pink-400" />
+                      <span className="text-pink-300 font-medium">Enviar Currículo (PDF)</span>
+                    </>
                   )}
-                  
-                  {/* Verificar se há uploads pendentes */}
-                  {(() => {
-                    const pending = JSON.parse(localStorage.getItem('pendingResumeUploads') || '[]');
-                    return pending.length > 0 ? (
-                      <div className="mt-2 p-2 bg-yellow-900 border border-yellow-600 rounded text-yellow-200">
-                        <p className="text-xs">
-                          📤 {pending.length} upload(s) pendente(s) de sincronização
-                        </p>
-                        <button
-                          type="button"
-                          onClick={handleSyncPendingUploads}
-                          disabled={isSyncing}
-                          className="mt-1 text-xs underline hover:no-underline disabled:opacity-50"
-                        >
-                          {isSyncing ? 'Sincronizando...' : 'Tentar sincronizar agora'}
-                        </button>
-                      </div>
-                    ) : null;
-                  })()}
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleUploadResume}
+                    className="hidden"
+                    disabled={isUploading || isLoading}
+                  />
+                </label>
+
+                <div className="text-center text-sm text-gray-400">
+                  <p>Apenas arquivos PDF • Máximo 5MB</p>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Verificar se há uploads pendentes */}
+            {(() => {
+              const pending = JSON.parse(localStorage.getItem('pendingResumeUploads') || '[]');
+              return pending.length > 0 ? (
+                <div className="mt-4 p-3 bg-yellow-900/20 border border-yellow-600 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-yellow-400 text-sm">📤</span>
+                      <p className="text-yellow-200 text-sm font-medium">
+                        {pending.length} upload(s) pendente(s) de sincronização
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSyncPendingUploads}
+                      disabled={isSyncing}
+                      className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-800 text-white rounded text-xs font-medium transition-colors disabled:opacity-50"
+                    >
+                      {isSyncing ? 'Sincronizando...' : 'Sincronizar'}
+                    </button>
+                  </div>
+                </div>
+              ) : null;
+            })()}
           </div>
 
           {/* Habilidades */}
@@ -652,26 +757,33 @@ const PerfilCandidato: React.FC = () => {
             </div>
           </div>
 
-          {/* Botão de Salvar */}
-          <div className="flex justify-end gap-4">
+          {/* Botões de Ação */}
+          <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4">
             <button
               type="button"
               onClick={() => navigate('/dashboard')}
-              className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+              className="w-full sm:w-auto px-4 py-3 sm:px-6 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-sm sm:text-base font-medium"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 sm:px-6 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base font-medium"
             >
-              <Save size={16} />
+              <Save size={16} className="sm:w-5 sm:h-5" />
               {isLoading ? 'Salvando...' : 'Salvar Perfil'}
             </button>
           </div>
         </form>
       </div>
+      
+      {/* Modal de Análise de Currículo */}
+      {showResumeAnalysis && (
+        <ResumeAnalysisModal
+          onClose={() => setShowResumeAnalysis(false)}
+        />
+      )}
     </div>
   );
 };

@@ -1,16 +1,55 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const HeaderCandidato: React.FC = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userPhotoUrl = user?.photoUrl;
+  const [userPhoto, setUserPhoto] = useState<string | null>(null);
+  
+  useEffect(() => {
+    // Verificar se há foto do usuário no localStorage
+    const userData = JSON.parse(localStorage.getItem("user") || "{}");
+    console.log("📱 Header - User data from localStorage:", userData);
+    console.log("📱 Header - Available photo fields:", {
+      photoUrl: userData?.photoUrl,
+      picture: userData?.picture,
+      avatar: userData?.avatar,
+      profilePicture: userData?.profilePicture,
+      image: userData?.image
+    });
+    
+    // Tentar várias possibilidades de campo de foto
+    const possiblePhotoFields = [
+      userData?.photoUrl,
+      userData?.picture, 
+      userData?.avatar,
+      userData?.profilePicture,
+      userData?.image,
+      userData?.profile?.picture,
+      userData?.profile?.photoUrl
+    ];
+    
+    const foundPhoto = possiblePhotoFields.find(photo => photo && typeof photo === 'string');
+    
+    if (foundPhoto) {
+      console.log("📱 Header - Foto encontrada:", foundPhoto);
+      setUserPhoto(foundPhoto);
+    } else {
+      // Verificar se há foto salva separadamente
+      const savedPhoto = localStorage.getItem("userPhoto");
+      if (savedPhoto) {
+        console.log("📱 Header - Foto salva separadamente:", savedPhoto);
+        setUserPhoto(savedPhoto);
+      } else {
+        console.log("📱 Header - Nenhuma foto encontrada");
+      }
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("user");
+    localStorage.removeItem("userPhoto");
     navigate("/loginCandidato");
   };
 
@@ -67,8 +106,16 @@ const HeaderCandidato: React.FC = () => {
             className="focus:outline-none hover:scale-105 transition-transform"
             title="Editar perfil"
           >
-            {userPhotoUrl ? (
-              <img src={userPhotoUrl} alt="User" className="w-8 h-8 rounded-full border-2 border-purple-400 hover:border-pink-400 transition-colors" />
+            {userPhoto ? (
+              <img 
+                src={userPhoto} 
+                alt="User" 
+                className="w-8 h-8 rounded-full border-2 border-purple-400 hover:border-pink-400 transition-colors object-cover"
+                onError={() => {
+                  console.log("Erro ao carregar foto do usuário:", userPhoto);
+                  setUserPhoto(null);
+                }}
+              />
             ) : (
               <div className="w-8 h-8 rounded-full border-2 border-purple-400 hover:border-pink-400 transition-colors bg-gray-600 flex items-center justify-center">
                 <svg

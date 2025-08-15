@@ -1,206 +1,96 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Search, Filter, ArrowLeft, Download, ExternalLink } from 'lucide-react';
-import CandidateCard from '../../components/CandidateCard';
-import { Job, Candidate } from '../../types';
+import { Search, Filter, ArrowLeft, Download, ExternalLink, Star } from 'lucide-react';
+import TalentBankCandidateCard from '../../components/TalentBankCandidateCard';
+import { Job } from '../../types';
+import { TalentBankCandidate } from '../../services/talentBankService';
+import talentBankService from '../../services/talentBankService';
 
-// Mock data
+// Mock data para a vaga (manter temporariamente)
 const mockJob: Job = {
   id: '1',
-  title: 'Senior Frontend Developer',
-  description: 'We are looking for an experienced Frontend Developer to join our team.',
-  requirements: ['5+ years of React experience', 'TypeScript', 'CSS/SCSS'],
-  benefits: ['Competitive salary', 'Remote work', 'Health insurance'],
+  title: 'Todos os Candidatos',
+  description: 'Visualize todos os candidatos da plataforma.',
+  requirements: [],
+  benefits: [],
   type: 'Remote',
   location: 'Anywhere',
   status: 'Open',
   createdAt: '2023-09-15T10:00:00Z',
-  applicantsCount: 12,
+  applicantsCount: 0,
 };
-
-const mockCandidates: Candidate[] = [
-  {
-    id: '1',
-    name: 'Alex Johnson',
-    email: 'alex@example.com',
-    phone: '+1 (555) 123-4567',
-    score: 92,
-    experience: [
-      {
-        company: 'Tech Solutions Inc.',
-        position: 'Frontend Developer',
-        duration: '2020 - 2023',
-        description: 'Developed and maintained React applications.',
-      },
-      {
-        company: 'WebDesign Co.',
-        position: 'UI Developer',
-        duration: '2018 - 2020',
-        description: 'Designed and implemented user interfaces.',
-      },
-    ],
-    education: [
-      {
-        institution: 'University of Technology',
-        degree: 'Bachelor',
-        field: 'Computer Science',
-        year: '2018',
-      },
-    ],
-    skills: ['React', 'TypeScript', 'CSS', 'Redux', 'Node.js'],
-    appliedAt: '2023-09-16T10:30:00Z',
-    status: 'Pending',
-  },
-  {
-    id: '2',
-    name: 'Sarah Miller',
-    email: 'sarah@example.com',
-    phone: '+1 (555) 987-6543',
-    score: 85,
-    experience: [
-      {
-        company: 'Frontend Masters',
-        position: 'Senior Developer',
-        duration: '2019 - 2023',
-        description: 'Led frontend development for multiple projects.',
-      },
-    ],
-    education: [
-      {
-        institution: 'State University',
-        degree: 'Master',
-        field: 'Web Development',
-        year: '2019',
-      },
-    ],
-    skills: ['JavaScript', 'React', 'HTML', 'CSS', 'Git'],
-    appliedAt: '2023-09-17T14:45:00Z',
-    status: 'Pending',
-  },
-  {
-    id: '3',
-    name: 'Michael Chen',
-    email: 'michael@example.com',
-    phone: '+1 (555) 456-7890',
-    score: 78,
-    experience: [
-      {
-        company: 'App Innovators',
-        position: 'Frontend Developer',
-        duration: '2021 - 2023',
-        description: 'Developed responsive web applications.',
-      },
-      {
-        company: 'Tech Start',
-        position: 'Junior Developer',
-        duration: '2019 - 2021',
-        description: 'Assisted in frontend development tasks.',
-      },
-    ],
-    education: [
-      {
-        institution: 'Tech Institute',
-        degree: 'Bachelor',
-        field: 'Information Technology',
-        year: '2019',
-      },
-    ],
-    skills: ['JavaScript', 'React', 'Bootstrap', 'SASS'],
-    appliedAt: '2023-09-18T09:15:00Z',
-    status: 'Pending',
-  },
-  {
-    id: '4',
-    name: 'Julia Roberts',
-    email: 'julia@example.com',
-    phone: '+1 (555) 234-5678',
-    score: 95,
-    experience: [
-      {
-        company: 'Tech Giants',
-        position: 'Lead Frontend Developer',
-        duration: '2018 - 2023',
-        description: 'Led a team of frontend developers and architected solutions.',
-      },
-      {
-        company: 'Web Solutions',
-        position: 'Senior Developer',
-        duration: '2015 - 2018',
-        description: 'Developed complex web applications.',
-      },
-    ],
-    education: [
-      {
-        institution: 'Elite University',
-        degree: 'Master',
-        field: 'Computer Science',
-        year: '2015',
-      },
-    ],
-    skills: ['React', 'TypeScript', 'JavaScript', 'HTML', 'CSS', 'Redux', 'GraphQL'],
-    appliedAt: '2023-09-16T11:20:00Z',
-    status: 'Pending',
-  },
-  {
-    id: '5',
-    name: 'David Kim',
-    email: 'david@example.com',
-    phone: '+1 (555) 876-5432',
-    score: 82,
-    experience: [
-      {
-        company: 'Creative Apps',
-        position: 'Frontend Developer',
-        duration: '2020 - 2023',
-        description: 'Built and maintained React applications.',
-      },
-    ],
-    education: [
-      {
-        institution: 'State College',
-        degree: 'Bachelor',
-        field: 'Software Engineering',
-        year: '2020',
-      },
-    ],
-    skills: ['JavaScript', 'React', 'CSS', 'HTML', 'jQuery'],
-    appliedAt: '2023-09-17T16:40:00Z',
-    status: 'Pending',
-  },
-];
 
 const CandidateList = () => {
   const { jobId } = useParams<{ jobId: string }>();
-  const [job, setJob] = useState<Job | null>(null);
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [skillFilter, setSkillFilter] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setJob(mockJob);
+  // Estados locais para este componente
+  const [candidates, setCandidates] = useState<TalentBankCandidate[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  
+  const [job, setJob] = useState<Job | null>(null);
+  const [filteredCandidates, setFilteredCandidates] = useState<TalentBankCandidate[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [skillFilter, setSkillFilter] = useState<string>('');
+  
+  // Carregar todos os candidatos e sincronizar com favoritos
+  const loadAllCandidatesWithFavorites = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
       
-      // Sort candidates by score (descending)
-      const sortedCandidates = [...mockCandidates].sort((a, b) => {
-        const scoreA = a.score || 0;
-        const scoreB = b.score || 0;
-        return scoreB - scoreA;
-      });
+      console.log('🔄 Carregando todos os candidatos...');
       
-      setCandidates(sortedCandidates);
-      setFilteredCandidates(sortedCandidates);
+      // Carregar todos os candidatos da plataforma
+      const allCandidatesResponse = await talentBankService.getAllCandidates();
+      console.log('📋 Todos os candidatos:', allCandidatesResponse);
+      
+      // Carregar candidatos favoritados
+      const favoritesResponse = await talentBankService.getTalentBank();
+      console.log('⭐ Candidatos favoritados:', favoritesResponse);
+      
+      // Criar set com IDs dos candidatos favoritados
+      const favoriteIds = new Set(favoritesResponse.candidates.map((c: TalentBankCandidate) => c.id));
+      
+      // Marcar candidatos que estão favoritados
+      const candidatesWithFavorites = allCandidatesResponse.candidates.map((candidate: TalentBankCandidate) => ({
+        ...candidate,
+        isFavorite: favoriteIds.has(candidate.id)
+      }));
+      
+      setCandidates(candidatesWithFavorites);
+      setTotal(allCandidatesResponse.total);
+      
+      console.log('✅ Candidatos sincronizados com favoritos:', candidatesWithFavorites);
+      
+    } catch (err) {
+      console.error('❌ Erro ao carregar candidatos:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao carregar candidatos');
+    } finally {
       setIsLoading(false);
-    }, 1000);
-  }, [jobId]);
+    }
+  };
+  
+  // Carregar candidatos quando o componente montar
+  useEffect(() => {
+    loadAllCandidatesWithFavorites();
+  }, []);
+  
+  useEffect(() => {
+    // Simular carregamento da vaga
+    setJob({
+      ...mockJob,
+      title: jobId ? `Candidatos para Vaga ${jobId}` : 'Todos os Candidatos',
+      applicantsCount: total
+    });
+  }, [jobId, total]);
   
   useEffect(() => {
     let results = candidates;
     
-    // Apply search filter
+    // Aplicar filtro de busca
     if (searchTerm) {
       results = results.filter(
         (candidate) =>
@@ -209,13 +99,16 @@ const CandidateList = () => {
       );
     }
     
-    // Apply skill filter
+    // Aplicar filtro de habilidade (buscar nas skills)
     if (skillFilter) {
-      results = results.filter((candidate) =>
-        candidate.skills.some((skill) =>
+      results = results.filter((candidate) => {
+        // Buscar nas skills
+        const hasSkill = candidate.skills?.some((skill: string) =>
           skill.toLowerCase().includes(skillFilter.toLowerCase())
-        )
-      );
+        );
+        
+        return hasSkill;
+      });
     }
     
     setFilteredCandidates(results);
@@ -225,13 +118,66 @@ const CandidateList = () => {
     navigate(`/candidate/${id}`);
   };
   
+  const handleFavoriteToggle = async (candidateId: string) => {
+    try {
+      // Verificar se já está favoritado
+      const candidate = candidates.find(c => c.id === candidateId);
+      const isFavorited = candidate?.isFavorite;
+      
+      if (isFavorited) {
+        // Desfavoritar
+        await talentBankService.unfavoriteCandidate(candidateId);
+        
+        // Atualizar estado local
+        setCandidates(prev => prev.map(c => 
+          c.id === candidateId ? { ...c, isFavorite: false } : c
+        ));
+      } else {
+        // Favoritar
+        await talentBankService.favoriteCandidate(candidateId);
+        
+        // Atualizar estado local
+        setCandidates(prev => prev.map(c => 
+          c.id === candidateId ? { ...c, isFavorite: true } : c
+        ));
+      }
+      
+      console.log(`✅ Candidato ${isFavorited ? 'desfavoritado' : 'favoritado'} com sucesso!`);
+    } catch (err) {
+      console.error('❌ Erro ao atualizar favorito:', err);
+      // Em caso de erro, recarregar para sincronizar
+      await loadAllCandidatesWithFavorites();
+    }
+  };
+  
   const handleExportList = () => {
-    // In a real app, this would generate and download a CSV/PDF
-    alert('Export functionality would be implemented here.');
+    // Implementar exportação de lista
+    const csvContent = [
+      ['Nome', 'Email', 'Data de Candidatura', 'Status', 'Pontuação'],
+      ...filteredCandidates.map(candidate => [
+        candidate.name,
+        candidate.email,
+        new Date(candidate.appliedAt).toLocaleDateString('pt-BR'),
+        candidate.status,
+        candidate.score || 0
+      ])
+    ].map(row => row.join(',')).join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'candidatos.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
   
   const handleBackToJobs = () => {
     navigate('/manage-jobs');
+  };
+  
+  const handleViewTalentBank = () => {
+    navigate('/talent-bank');
   };
   
   if (isLoading) {
@@ -241,6 +187,23 @@ const CandidateList = () => {
           <div className="h-12 w-12 rounded-full bg-dark-700 mb-4"></div>
           <div className="h-4 w-32 bg-dark-700 rounded mb-2"></div>
           <div className="h-3 w-24 bg-dark-700 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="text-red-500 text-xl mb-4">⚠️ Erro ao carregar candidatos</div>
+          <p className="text-dark-300 mb-4">{error}</p>
+          <button 
+            onClick={() => loadAllCandidatesWithFavorites()} 
+            className="btn btn-primary"
+          >
+            Tentar Novamente
+          </button>
         </div>
       </div>
     );
@@ -260,20 +223,30 @@ const CandidateList = () => {
           
           <h1 className="text-3xl font-bold">{job?.title}</h1>
           <p className="text-dark-300 mt-1">
-            {job?.applicantsCount} candidatos • {job?.location} • {job?.type}
+            {total} candidatos • Plataforma Geral
           </p>
         </div>
         
-        <button
-          onClick={handleExportList}
-          className="btn btn-outline flex items-center"
-        >
-          <Download size={18} className="mr-2" />
-          <span>Exportar Lista</span>
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleViewTalentBank}
+            className="btn btn-secondary flex items-center"
+          >
+            <Star size={18} className="mr-2" />
+            <span>Ver Banco de Talentos</span>
+          </button>
+          
+          <button
+            onClick={handleExportList}
+            className="btn btn-outline flex items-center"
+          >
+            <Download size={18} className="mr-2" />
+            <span>Exportar Lista</span>
+          </button>
+        </div>
       </div>
       
-      {/* Filters */}
+      {/* Filtros */}
       <div className="card p-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
@@ -311,38 +284,56 @@ const CandidateList = () => {
         <div className="px-4 py-2 bg-dark-800 rounded-lg flex items-center">
           <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
           <span className="text-sm text-dark-300">
-            Pontuação Média: {candidates.length > 0 ? 
-              (candidates.reduce((sum, c) => sum + (c.score || 0), 0) / candidates.length).toFixed(1) : 
+            Pontuação Média: {filteredCandidates.length > 0 ? 
+              (filteredCandidates.reduce((sum, c) => sum + (c.score || 0), 0) / filteredCandidates.length).toFixed(1) : 
               '0'}
           </span>
         </div>
         
         <div className="px-4 py-2 bg-dark-800 rounded-lg flex items-center">
           <div className="w-2 h-2 bg-pink-500 rounded-full mr-2"></div>
-          <span className="text-sm text-dark-300">Aprovados: 0</span>
+          <span className="text-sm text-dark-300">
+            Aprovados: {filteredCandidates.filter(c => c.status === 'Approved').length}
+          </span>
         </div>
         
         <div className="px-4 py-2 bg-dark-800 rounded-lg flex items-center">
           <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
-          <span className="text-sm text-dark-300">Rejeitados: 0</span>
+          <span className="text-sm text-dark-300">
+            Rejeitados: {filteredCandidates.filter(c => c.status === 'Rejected').length}
+          </span>
         </div>
         
         <div className="px-4 py-2 bg-dark-800 rounded-lg flex items-center">
           <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-          <span className="text-sm text-dark-300">Pendentes: {candidates.length}</span>
+          <span className="text-sm text-dark-300">
+            Pendentes: {filteredCandidates.filter(c => c.status === 'Pending').length}
+          </span>
+        </div>
+
+        <div className="px-4 py-2 bg-dark-800 rounded-lg flex items-center">
+          <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></div>
+          <span className="text-sm text-dark-300">
+            Favoritados: {filteredCandidates.filter(c => c.isFavorite).length}
+          </span>
         </div>
       </div>
       
       {/* Candidates list */}
       {filteredCandidates.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCandidates.map((candidate) => (
-            <CandidateCard
-              key={candidate.id}
-              candidate={candidate}
-              onView={handleViewCandidate}
-            />
-          ))}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Candidatos Encontrados ({filteredCandidates.length})</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCandidates.map((candidate) => (
+              <TalentBankCandidateCard
+                key={candidate.id}
+                candidate={candidate}
+                onView={handleViewCandidate}
+                onFavoriteToggle={handleFavoriteToggle}
+              />
+            ))}
+          </div>
         </div>
       ) : (
         <div className="card py-16">
@@ -352,14 +343,19 @@ const CandidateList = () => {
             </div>
             <h3 className="text-xl font-medium mb-1">Nenhum candidato encontrado</h3>
             <p className="text-dark-400 mb-6">
-              Não encontramos candidatos com os filtros aplicados.
+              {searchTerm || skillFilter 
+                ? 'Não encontramos candidatos com os filtros aplicados.'
+                : 'Não há candidatos registrados na plataforma.'
+              }
             </p>
-            <button onClick={() => {
-              setSearchTerm('');
-              setSkillFilter('');
-            }} className="btn btn-outline">
-              Limpar Filtros
-            </button>
+            {(searchTerm || skillFilter) && (
+              <button onClick={() => {
+                setSearchTerm('');
+                setSkillFilter('');
+              }} className="btn btn-outline">
+                Limpar Filtros
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -369,7 +365,13 @@ const CandidateList = () => {
         <div className="flex items-center text-dark-300">
           <ExternalLink size={18} className="mr-2 text-pink-500" />
           <span>
-            Não encontrou o que procura? <a href="#" className="text-pink-500 hover:text-pink-400">Veja o banco de talentos completo</a>
+            Procurando talentos específicos? 
+            <button 
+              onClick={handleViewTalentBank}
+              className="text-pink-500 hover:text-pink-400 ml-1 underline"
+            >
+              Acesse seu banco de talentos personalizado
+            </button>
           </span>
         </div>
       </div>

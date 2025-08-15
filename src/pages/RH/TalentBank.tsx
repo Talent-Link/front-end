@@ -1,286 +1,106 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Download, ArrowUpDown } from 'lucide-react';
+import { Search, Filter, Download, ArrowUpDown, Heart, HeartOff, RefreshCw, AlertCircle } from 'lucide-react';
 import CandidateCard from '../../components/CandidateCard';
-import { Candidate } from '../../types';
-
-// Mock data
-const mockCandidates: Candidate[] = [
-  {
-    id: '1',
-    name: 'Alex Johnson',
-    email: 'alex@example.com',
-    phone: '+1 (555) 123-4567',
-    score: 92,
-    experience: [
-      {
-        company: 'Tech Solutions Inc.',
-        position: 'Frontend Developer',
-        duration: '2020 - 2023',
-        description: 'Developed and maintained React applications.',
-      },
-      {
-        company: 'WebDesign Co.',
-        position: 'UI Developer',
-        duration: '2018 - 2020',
-        description: 'Designed and implemented user interfaces.',
-      },
-    ],
-    education: [
-      {
-        institution: 'University of Technology',
-        degree: 'Bachelor',
-        field: 'Computer Science',
-        year: '2018',
-      },
-    ],
-    skills: ['React', 'TypeScript', 'CSS', 'Redux', 'Node.js'],
-    appliedAt: '2023-09-16T10:30:00Z',
-    status: 'Approved',
-  },
-  {
-    id: '2',
-    name: 'Sarah Miller',
-    email: 'sarah@example.com',
-    phone: '+1 (555) 987-6543',
-    score: 85,
-    experience: [
-      {
-        company: 'Frontend Masters',
-        position: 'Senior Developer',
-        duration: '2019 - 2023',
-        description: 'Led frontend development for multiple projects.',
-      },
-    ],
-    education: [
-      {
-        institution: 'State University',
-        degree: 'Master',
-        field: 'Web Development',
-        year: '2019',
-      },
-    ],
-    skills: ['JavaScript', 'React', 'HTML', 'CSS', 'Git'],
-    appliedAt: '2023-09-17T14:45:00Z',
-    status: 'Rejected',
-  },
-  {
-    id: '3',
-    name: 'Michael Chen',
-    email: 'michael@example.com',
-    phone: '+1 (555) 456-7890',
-    score: 78,
-    experience: [
-      {
-        company: 'App Innovators',
-        position: 'Frontend Developer',
-        duration: '2021 - 2023',
-        description: 'Developed responsive web applications.',
-      },
-      {
-        company: 'Tech Start',
-        position: 'Junior Developer',
-        duration: '2019 - 2021',
-        description: 'Assisted in frontend development tasks.',
-      },
-    ],
-    education: [
-      {
-        institution: 'Tech Institute',
-        degree: 'Bachelor',
-        field: 'Information Technology',
-        year: '2019',
-      },
-    ],
-    skills: ['JavaScript', 'React', 'Bootstrap', 'SASS'],
-    appliedAt: '2023-09-18T09:15:00Z',
-    status: 'Pending',
-  },
-  {
-    id: '4',
-    name: 'Julia Roberts',
-    email: 'julia@example.com',
-    phone: '+1 (555) 234-5678',
-    score: 95,
-    experience: [
-      {
-        company: 'Tech Giants',
-        position: 'Lead Frontend Developer',
-        duration: '2018 - 2023',
-        description: 'Led a team of frontend developers and architected solutions.',
-      },
-      {
-        company: 'Web Solutions',
-        position: 'Senior Developer',
-        duration: '2015 - 2018',
-        description: 'Developed complex web applications.',
-      },
-    ],
-    education: [
-      {
-        institution: 'Elite University',
-        degree: 'Master',
-        field: 'Computer Science',
-        year: '2015',
-      },
-    ],
-    skills: ['React', 'TypeScript', 'JavaScript', 'HTML', 'CSS', 'Redux', 'GraphQL'],
-    appliedAt: '2023-09-16T11:20:00Z',
-    status: 'Approved',
-  },
-  {
-    id: '5',
-    name: 'David Kim',
-    email: 'david@example.com',
-    phone: '+1 (555) 876-5432',
-    score: 82,
-    experience: [
-      {
-        company: 'Creative Apps',
-        position: 'Frontend Developer',
-        duration: '2020 - 2023',
-        description: 'Built and maintained React applications.',
-      },
-    ],
-    education: [
-      {
-        institution: 'State College',
-        degree: 'Bachelor',
-        field: 'Software Engineering',
-        year: '2020',
-      },
-    ],
-    skills: ['JavaScript', 'React', 'CSS', 'HTML', 'jQuery'],
-    appliedAt: '2023-09-17T16:40:00Z',
-    status: 'Pending',
-  },
-  // Backend developers
-  {
-    id: '6',
-    name: 'Emma Wilson',
-    email: 'emma@example.com',
-    phone: '+1 (555) 345-6789',
-    score: 88,
-    experience: [
-      {
-        company: 'Server Solutions',
-        position: 'Backend Developer',
-        duration: '2019 - 2023',
-        description: 'Developed and optimized server-side applications.',
-      },
-    ],
-    education: [
-      {
-        institution: 'Tech University',
-        degree: 'Master',
-        field: 'Computer Engineering',
-        year: '2019',
-      },
-    ],
-    skills: ['Node.js', 'Express', 'MongoDB', 'REST API', 'AWS'],
-    appliedAt: '2023-09-15T13:20:00Z',
-    status: 'Approved',
-  },
-  {
-    id: '7',
-    name: 'James Taylor',
-    email: 'james@example.com',
-    phone: '+1 (555) 567-8901',
-    score: 79,
-    experience: [
-      {
-        company: 'Data Systems',
-        position: 'Backend Engineer',
-        duration: '2020 - 2023',
-        description: 'Designed and implemented database solutions.',
-      },
-    ],
-    education: [
-      {
-        institution: 'State University',
-        degree: 'Bachelor',
-        field: 'Computer Science',
-        year: '2020',
-      },
-    ],
-    skills: ['Python', 'Django', 'PostgreSQL', 'Docker', 'Microservices'],
-    appliedAt: '2023-09-14T10:15:00Z',
-    status: 'Rejected',
-  },
-];
+import { useTalentBank } from '../../hooks/useTalentBank';
+import { CandidateFilters } from '../../services/talentBankService';
 
 const TalentBank = () => {
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [skillFilter, setSkillFilter] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('date');
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setCandidates(mockCandidates);
-      setFilteredCandidates(mockCandidates);
-      setIsLoading(false);
-    }, 1000);
-  }, []);
-  
-  useEffect(() => {
-    let results = candidates;
+  // Estados do hook customizado
+  const {
+    candidates,
+    isLoading,
+    error,
+    total,
+    hasMore,
+    applyFilters,
+    clearFilters,
+    exportCandidates,
+    favoriteCandidate,
+    unfavoriteCandidate,
+    refreshCandidates,
+    loadMoreCandidates,
+    favoriteCandidates,
+    approvedCandidates
+  } = useTalentBank();
+
+  // Estados locais para filtros da UI
+  const [searchTerm, setSearchTerm] = useState('');
+  const [skillFilter, setSkillFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('date');
+  const [showFavorites, setShowFavorites] = useState(false);
+
+  /**
+   * Aplicar filtros quando mudarem
+   */
+  const handleApplyFilters = useCallback(() => {
+    const filters: CandidateFilters = {
+      search: searchTerm.trim() || undefined,
+      skills: skillFilter.trim() || undefined,
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      sortBy: sortBy as 'date' | 'score' | 'name',
+      page: 1
+    };
     
-    // Apply search filter
-    if (searchTerm) {
-      results = results.filter(
-        (candidate) =>
-          candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          candidate.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    applyFilters(filters);
+  }, [searchTerm, skillFilter, statusFilter, sortBy, applyFilters]);
+
+  /**
+   * Limpar todos os filtros
+   */
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm('');
+    setSkillFilter('');
+    setStatusFilter('all');
+    setSortBy('date');
+    setShowFavorites(false);
+    clearFilters();
+  }, [clearFilters]);
+
+  /**
+   * Visualizar candidato
+   */
+  const handleViewCandidate = useCallback((id: string) => {
+    navigate(`candidate/${id}`);
+  }, [navigate]);
+
+  /**
+   * Exportar lista
+   */
+  const handleExportList = useCallback(async () => {
+    try {
+      await exportCandidates();
+    } catch (error) {
+      console.error('Erro ao exportar:', error);
+      // Aqui você pode adicionar uma notificação de erro
     }
-    
-    // Apply skill filter
-    if (skillFilter) {
-      results = results.filter((candidate) =>
-        candidate.skills.some((skill) =>
-          skill.toLowerCase().includes(skillFilter.toLowerCase())
-        )
-      );
-    }
-    
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      results = results.filter((candidate) => candidate.status === statusFilter);
-    }
-    
-    // Apply sorting
-    results = [...results].sort((a, b) => {
-      if (sortBy === 'date') {
-        return new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime();
-      } else if (sortBy === 'score') {
-        return (b.score || 0) - (a.score || 0);
-      } else if (sortBy === 'name') {
-        return a.name.localeCompare(b.name);
+  }, [exportCandidates]);
+
+  /**
+   * Toggle favorito
+   */
+  const handleToggleFavorite = useCallback(async (candidateId: string, isFavorite: boolean) => {
+    try {
+      if (isFavorite) {
+        await unfavoriteCandidate(candidateId);
+      } else {
+        await favoriteCandidate(candidateId);
       }
-      return 0;
-    });
-    
-    setFilteredCandidates(results);
-  }, [searchTerm, skillFilter, statusFilter, sortBy, candidates]);
-  
-  const handleViewCandidate = (id: string) => {
-    navigate(`/dashboardRH/candidate/${id}`);
-  };
-  
-  const handleExportList = () => {
-    // In a real app, this would generate and download a CSV/PDF
-    alert('Export functionality would be implemented here.');
-  };
-  
-  if (isLoading) {
+    } catch (error) {
+      console.error('Erro ao alterar favorito:', error);
+    }
+  }, [favoriteCandidate, unfavoriteCandidate]);
+
+  // Candidatos para exibir (favoritos ou todos)
+  const displayCandidates = showFavorites ? favoriteCandidates : candidates;
+
+  // Loading state
+  if (isLoading && candidates.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-64">
         <div className="animate-pulse flex flex-col items-center">
           <div className="h-12 w-12 rounded-full bg-dark-700 mb-4"></div>
           <div className="h-4 w-32 bg-dark-700 rounded mb-2"></div>
@@ -289,24 +109,70 @@ const TalentBank = () => {
       </div>
     );
   }
-  
+
+  // Error state
+  if (error && candidates.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-white mb-2">Erro ao carregar candidatos</h2>
+          <p className="text-dark-300 mb-4">{error}</p>
+          <button
+            onClick={refreshCandidates}
+            className="btn btn-primary flex items-center"
+          >
+            <RefreshCw size={18} className="mr-2" />
+            Tentar Novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold ">Banco de Talentos</h1>
+          <h1 className="text-3xl font-bold text-white">Banco de Talentos</h1>
           <p className="text-dark-300 mt-1">
-            {candidates.length} candidatos no total
+            {total} candidatos encontrados
+            {showFavorites && ` • ${favoriteCandidates.length} favoritos`}
+            {' • '}
+            {approvedCandidates.length} aprovados
           </p>
         </div>
         
-        <button
-          onClick={handleExportList}
-          className="btn btn-outline flex items-center"
-        >
-          <Download size={18} className="mr-2" />
-          <span>Exportar Lista</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowFavorites(!showFavorites)}
+            className={`btn ${showFavorites ? 'btn-primary' : 'btn-outline'} flex items-center`}
+          >
+            {showFavorites ? (
+              <><Heart size={18} className="mr-2" />Favoritos</>
+            ) : (
+              <><HeartOff size={18} className="mr-2" />Todos</>
+            )}
+          </button>
+          
+          <button
+            onClick={refreshCandidates}
+            disabled={isLoading}
+            className="btn btn-outline flex items-center"
+          >
+            <RefreshCw size={18} className={`mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>Atualizar</span>
+          </button>
+          
+          <button
+            onClick={handleExportList}
+            className="btn btn-outline flex items-center"
+          >
+            <Download size={18} className="mr-2" />
+            <span>Exportar Lista</span>
+          </button>
+        </div>
       </div>
       
       {/* Advanced Filters */}
@@ -321,6 +187,7 @@ const TalentBank = () => {
               placeholder="Buscar por nome ou email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleApplyFilters()}
               className="form-input pl-10 w-full"
             />
           </div>
@@ -335,6 +202,7 @@ const TalentBank = () => {
                 placeholder="Filtrar por habilidade"
                 value={skillFilter}
                 onChange={(e) => setSkillFilter(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleApplyFilters()}
                 className="form-input pl-10 w-full"
               />
             </div>
@@ -369,36 +237,93 @@ const TalentBank = () => {
               </div>
             </div>
           </div>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={handleApplyFilters}
+              disabled={isLoading}
+              className="btn btn-primary whitespace-nowrap"
+            >
+              {isLoading ? 'Buscando...' : 'Aplicar'}
+            </button>
+            
+            <button
+              onClick={handleClearFilters}
+              className="btn btn-outline whitespace-nowrap"
+            >
+              Limpar
+            </button>
+          </div>
         </div>
       </div>
       
       {/* Candidates list */}
-      {filteredCandidates.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCandidates.map((candidate) => (
-            <CandidateCard
-              key={candidate.id}
-              candidate={candidate}
-              onView={handleViewCandidate}
-            />
-          ))}
-        </div>
+      {displayCandidates.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {displayCandidates.map((candidate) => (
+              <div key={candidate.id} className="relative">
+                <CandidateCard
+                  candidate={{
+                    ...candidate,
+                    phone: candidate.phone || 'N/A'
+                  }}
+                  onView={handleViewCandidate}
+                />
+                
+                {/* Botão de favorito */}
+                <button
+                  onClick={() => handleToggleFavorite(candidate.id, candidate.isFavorite || false)}
+                  className={`absolute top-3 right-3 p-2 rounded-full transition-colors ${
+                    candidate.isFavorite
+                      ? 'bg-pink-500 text-white hover:bg-pink-600'
+                      : 'bg-dark-800 text-dark-300 hover:bg-dark-700 hover:text-pink-500'
+                  }`}
+                  title={candidate.isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                >
+                  {candidate.isFavorite ? (
+                    <Heart size={16} className="fill-current" />
+                  ) : (
+                    <Heart size={16} />
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
+          
+          {/* Load More Button */}
+          {hasMore && !showFavorites && (
+            <div className="flex justify-center">
+              <button
+                onClick={loadMoreCandidates}
+                disabled={isLoading}
+                className="btn btn-outline"
+              >
+                {isLoading ? 'Carregando...' : 'Carregar Mais'}
+              </button>
+            </div>
+          )}
+        </>
       ) : (
         <div className="card py-16">
           <div className="text-center">
             <div className="inline-block p-3 rounded-full bg-dark-700 mb-4">
               <Search size={24} className="text-dark-300" />
             </div>
-            <h3 className="text-xl font-medium mb-1">Nenhum candidato encontrado</h3>
+            <h3 className="text-xl font-medium mb-1">
+              {showFavorites ? 'Nenhum candidato favoritado' : 'Nenhum candidato encontrado'}
+            </h3>
             <p className="text-dark-400 mb-6">
-              Não encontramos candidatos com os filtros aplicados.
+              {showFavorites 
+                ? 'Você ainda não possui candidatos favoritos.'
+                : 'Não encontramos candidatos com os filtros aplicados.'
+              }
             </p>
-            <button onClick={() => {
-              setSearchTerm('');
-              setSkillFilter('');
-              setStatusFilter('all');
-            }} className="btn btn-outline">
-              Limpar Filtros
+            <button 
+              onClick={showFavorites ? () => setShowFavorites(false) : handleClearFilters} 
+              className="btn btn-outline"
+            >
+              {showFavorites ? 'Ver Todos os Candidatos' : 'Limpar Filtros'}
             </button>
           </div>
         </div>

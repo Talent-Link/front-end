@@ -59,10 +59,9 @@ const LoginRH: React.FC = () => {
             <img src="/logo.png" alt="Logo" className="w-16 h-16" />
           </div>
           <h2 className="login-title">Bem-vindo ao TalentLink!</h2>
-          <p className="login-subtitle">
-            Faça login para acessar sua conta e começar a explorar as
-            oportunidades de emprego disponíveis.
-          </p>
+            <p className="login-subtitle">
+            Faça login para acessar sua conta de RH e gerenciar vagas, candidatos e processos seletivos.
+            </p>
         </div>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -143,6 +142,19 @@ const LoginRH: React.FC = () => {
             Continuar com Google
           </div>
         </Button>
+
+        {/* Link para criar conta */}
+        <div className="text-center py-4">
+          <p className="text-gray-400">
+            Não tem uma conta?{' '}
+            <a 
+              href="/registerRH" 
+              className="text-pink-400 hover:text-pink-300 underline transition-colors"
+            >
+              Criar conta
+            </a>
+          </p>
+        </div>
 
         <p className="login-footer">
           Ao fazer login, você concorda com nossos{" "}

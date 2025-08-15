@@ -2,83 +2,135 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Building, 
-  Mail, 
   Camera, 
-  Lock, 
-  Bell, 
-  Shield, 
   LogOut, 
   Check,
-  X
+  X,
+  MapPin,
+  FileText
 } from 'lucide-react';
-import { User } from '../../types';
-
-// Mock data
-const mockUser: User = {
-  id: '1',
-  name: 'TechRecruit Solutions',
-  email: 'contact@techrecruit.com',
-  company: 'TechRecruit',
-  logoUrl: 'https://via.placeholder.com/150',
-};
+import { useCompany } from '../../hooks/useCompany';
+import { companyService } from '../../services/companyService';
 
 const Settings = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('profile');
+  const navigate = useNavigate();
+  const { company, loading, error, saveCompany, uploadLogo, deleteLogo } = useCompany();
+  
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const navigate = useNavigate();
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   
   // Form states
-  const [companyName, setCompanyName] = useState('');
-  const [email, setEmail] = useState('');
-  const [logoUrl, setLogoUrl] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    address: '',
+    logoUrl: ''
+  });
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>('');
   
+  // Carregar dados da empresa quando o componente montar
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setUser(mockUser);
-      setCompanyName(mockUser.name);
-      setEmail(mockUser.email);
-      setLogoUrl(mockUser.logoUrl || '');
-      setIsLoading(false);
-    }, 1000);
-  }, []);
+    if (company) {
+      setFormData({
+        name: company.name || '',
+        description: company.description || '',
+        address: company.address || '',
+        logoUrl: company.logoUrl || ''
+      });
+      setLogoPreview(company.logoUrl || '');
+    }
+  }, [company]);
   
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setValidationErrors([]);
   };
   
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setUser({
-        ...user!,
-        name: companyName,
-        email,
-        logoUrl,
-      });
-      setIsSaving(false);
-      setSuccessMessage('Perfil atualizado com sucesso!');
+    // Validar dados
+    const errors = companyService.validateCompany(formData);
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+    
+    try {
+      setIsSaving(true);
+      setValidationErrors([]);
+      
+      // Salvar dados da empresa
+      await saveCompany(formData);
+      
+      // Se há arquivo de logo, fazer upload
+      if (logoFile) {
+        const uploadResult = await uploadLogo(logoFile);
+        setLogoFile(null);
+        // Atualizar o preview com a URL retornada pelo backend
+        setLogoPreview(uploadResult.logoUrl);
+        // Atualizar também o formData
+        setFormData(prev => ({ ...prev, logoUrl: uploadResult.logoUrl }));
+      }
+      
+      setSuccessMessage(company ? 'Empresa atualizada com sucesso!' : 'Empresa criada com sucesso!');
       
       // Hide success message after 3 seconds
       setTimeout(() => {
         setSuccessMessage('');
       }, 3000);
-    }, 1000);
+    } catch (error: any) {
+      setValidationErrors([error.message || 'Erro ao salvar empresa']);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      
+      // Criar preview da imagem
+      const reader = new FileReader();
+      reader.onload = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleDeleteLogo = async () => {
+    if (!company?.logoUrl) return;
+    
+    if (!window.confirm('Tem certeza que deseja excluir a logo da empresa?')) {
+      return;
+    }
+    
+    try {
+      await deleteLogo();
+      setLogoPreview('');
+      setLogoFile(null);
+      setFormData(prev => ({ ...prev, logoUrl: '' }));
+      setSuccessMessage('Logo excluída com sucesso!');
+      
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
+    } catch (error: any) {
+      setValidationErrors([error.message || 'Erro ao excluir logo']);
+    }
   };
   
   const handleLogout = () => {
     // In a real app, this would call an API to logout
-    localStorage.removeItem('talentlink-user');
+    localStorage.removeItem('authToken');
     navigate('/login');
   };
   
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-pulse flex flex-col items-center">
@@ -93,10 +145,21 @@ const Settings = () => {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Configurações</h1>
-        <p className="text-dark-300 mt-1">
-          Gerencie as configurações da sua conta
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Configurações da Empresa</h1>
+            <p className="text-dark-300 mt-1">
+              Gerencie as informações da sua empresa
+            </p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center px-4 py-2 text-red-400 hover:bg-red-500/10 rounded-md transition-colors"
+          >
+            <LogOut size={18} className="mr-2" />
+            <span>Sair da Conta</span>
+          </button>
+        </div>
       </div>
       
       {/* Success message */}
@@ -115,395 +178,173 @@ const Settings = () => {
         </div>
       )}
       
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Sidebar */}
-        <div className="lg:w-64">
-          <div className="card p-4">
-            <nav className="space-y-1">
-              <button
-                onClick={() => handleTabChange('profile')}
-                className={`flex items-center w-full px-3 py-2 rounded-md transition-colors ${
-                  activeTab === 'profile'
-                    ? 'bg-gradient-primary text-white'
-                    : 'text-dark-200 hover:bg-dark-700'
-                }`}
-              >
-                <Building size={18} className="mr-2" />
-                <span>Perfil da Empresa</span>
-              </button>
-              
-              <button
-                onClick={() => handleTabChange('security')}
-                className={`flex items-center w-full px-3 py-2 rounded-md transition-colors ${
-                  activeTab === 'security'
-                    ? 'bg-gradient-primary text-white'
-                    : 'text-dark-200 hover:bg-dark-700'
-                }`}
-              >
-                <Lock size={18} className="mr-2" />
-                <span>Segurança</span>
-              </button>
-              
-              <button
-                onClick={() => handleTabChange('notifications')}
-                className={`flex items-center w-full px-3 py-2 rounded-md transition-colors ${
-                  activeTab === 'notifications'
-                    ? 'bg-gradient-primary text-white'
-                    : 'text-dark-200 hover:bg-dark-700'
-                }`}
-              >
-                <Bell size={18} className="mr-2" />
-                <span>Notificações</span>
-              </button>
-              
-              <button
-                onClick={() => handleTabChange('privacy')}
-                className={`flex items-center w-full px-3 py-2 rounded-md transition-colors ${
-                  activeTab === 'privacy'
-                    ? 'bg-gradient-primary text-white'
-                    : 'text-dark-200 hover:bg-dark-700'
-                }`}
-              >
-                <Shield size={18} className="mr-2" />
-                <span>Privacidade</span>
-              </button>
-            </nav>
-            
-            <div className="mt-8 pt-4 border-t border-dark-700">
-              <button
-                onClick={handleLogout}
-                className="flex items-center w-full px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-md transition-colors"
-              >
-                <LogOut size={18} className="mr-2" />
-                <span>Sair da Conta</span>
-              </button>
+      {/* Error messages */}
+      {(error || validationErrors.length > 0) && (
+        <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-md text-red-400">
+          <div className="flex items-start">
+            <X size={18} className="mr-2 flex-shrink-0 mt-0.5" />
+            <div>
+              {error && <p className="mb-2">{error}</p>}
+              {validationErrors.map((err, index) => (
+                <p key={index} className="mb-1">{err}</p>
+              ))}
             </div>
           </div>
         </div>
+      )}
+
+      {/* Company Profile Form */}
+      <div className="card animate-fade-in">
+        <h2 className="text-xl font-semibold mb-6">Perfil da Empresa</h2>
         
-        {/* Content */}
-        <div className="flex-1">
-          {activeTab === 'profile' && (
-            <div className="card animate-fade-in">
-              <h2 className="text-xl font-semibold mb-6">Perfil da Empresa</h2>
-              
-              <form onSubmit={handleSaveProfile} className="space-y-6">
-                {/* Company logo */}
-                <div className="flex flex-col items-center mb-6">
-                  <div className="relative">
-                    <img
-                      src={logoUrl || 'https://via.placeholder.com/150?text=Logo'}
-                      alt="Company logo"
-                      className="w-24 h-24 rounded-full object-cover bg-dark-700"
+        <form onSubmit={handleSaveProfile} className="space-y-6">
+          {/* Company logo */}
+          <div className="flex flex-col items-center mb-6">
+            <div className="relative">
+              {logoPreview ? (
+                <img
+                  src={logoPreview}
+                  alt="Company logo"
+                  className="w-24 h-24 rounded-full object-cover bg-dark-700"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-dark-700 flex items-center justify-center border-2 border-dashed border-dark-600">
+                  <svg
+                    className="w-8 h-8 text-dark-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
-                    <label
-                      htmlFor="logo-upload"
-                      className="absolute bottom-0 right-0 bg-dark-800 p-2 rounded-full cursor-pointer border border-dark-600 hover:bg-dark-700 transition-colors"
-                    >
-                      <Camera size={16} className="text-dark-300" />
-                      <input
-                        id="logo-upload"
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={() => {
-                          // In a real app, this would upload the file
-                          alert('File upload would be implemented here.');
-                        }}
-                      />
-                    </label>
-                  </div>
-                  <p className="text-sm text-dark-400 mt-2">
-                    Clique no ícone de câmera para fazer upload de uma nova logo
-                  </p>
+                  </svg>
                 </div>
-                
-                <div>
-                  <label htmlFor="company-name" className="block text-sm font-medium text-dark-200 mb-2">
-                    Nome da Empresa
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Building size={18} className="text-dark-400" />
-                    </div>
-                    <input
-                      type="text"
-                      id="company-name"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      className="form-input pl-10"
-                      placeholder="Ex: TechRecruit Solutions"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-dark-200 mb-2">
-                    Email de Contato
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail size={18} className="text-dark-400" />
-                    </div>
-                    <input
-                      type="email"
-                      id="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="form-input pl-10"
-                      placeholder="Ex: contato@empresa.com"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label htmlFor="logo-url" className="block text-sm font-medium text-dark-200 mb-2">
-                    URL da Logo (opcional)
-                  </label>
-                  <input
-                    type="url"
-                    id="logo-url"
-                    value={logoUrl}
-                    onChange={(e) => setLogoUrl(e.target.value)}
-                    className="form-input"
-                    placeholder="Ex: https://sua-empresa.com/logo.png"
-                  />
-                  <p className="text-xs text-dark-400 mt-1">
-                    Você pode usar uma URL externa para sua logo
-                  </p>
-                </div>
-                
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={isSaving}
-                  >
-                    {isSaving ? (
-                      <span className="inline-block animate-pulse">Salvando...</span>
-                    ) : (
-                      <span>Salvar Alterações</span>
-                    )}
-                  </button>
-                </div>
-              </form>
+              )}
+              <label
+                htmlFor="logo-upload"
+                className="absolute bottom-0 right-0 bg-dark-800 p-2 rounded-full cursor-pointer border border-dark-600 hover:bg-dark-700 transition-colors"
+              >
+                <Camera size={16} className="text-dark-300" />
+                <input
+                  id="logo-upload"
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleLogoChange}
+                />
+              </label>
             </div>
-          )}
+            <div className="mt-2 text-center">
+              <p className="text-sm text-dark-400">
+                Clique no ícone de câmera para fazer upload de uma nova logo
+              </p>
+              {company?.logoUrl && (
+                <button
+                  type="button"
+                  onClick={handleDeleteLogo}
+                  className="text-red-400 hover:text-red-300 text-sm mt-1"
+                >
+                  Excluir Logo
+                </button>
+              )}
+            </div>
+          </div>
           
-          {activeTab === 'security' && (
-            <div className="card animate-fade-in">
-              <h2 className="text-xl font-semibold mb-6">Segurança</h2>
-              
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium mb-3">Alterar Senha</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="current-password" className="block text-sm font-medium text-dark-200 mb-2">
-                        Senha Atual
-                      </label>
-                      <input
-                        type="password"
-                        id="current-password"
-                        className="form-input"
-                        placeholder="Digite sua senha atual"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="new-password" className="block text-sm font-medium text-dark-200 mb-2">
-                        Nova Senha
-                      </label>
-                      <input
-                        type="password"
-                        id="new-password"
-                        className="form-input"
-                        placeholder="Digite a nova senha"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="confirm-password" className="block text-sm font-medium text-dark-200 mb-2">
-                        Confirme a Nova Senha
-                      </label>
-                      <input
-                        type="password"
-                        id="confirm-password"
-                        className="form-input"
-                        placeholder="Digite a nova senha novamente"
-                      />
-                    </div>
-                    
-                    <div>
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={() => alert('Password change would be implemented here.')}
-                      >
-                        Atualizar Senha
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="pt-6 border-t border-dark-700">
-                  <h3 className="text-lg font-medium mb-3">Autenticação de Dois Fatores</h3>
-                  <p className="text-dark-300 mb-4">
-                    Adicione uma camada extra de segurança à sua conta habilitando a autenticação de dois fatores.
-                  </p>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => alert('2FA setup would be implemented here.')}
-                  >
-                    Configurar 2FA
-                  </button>
-                </div>
+          <div>
+            <label htmlFor="company-name" className="block text-sm font-medium text-dark-200 mb-2">
+              Nome da Empresa *
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Building size={18} className="text-dark-400" />
               </div>
+              <input
+                type="text"
+                id="company-name"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                className="form-input pl-10"
+                placeholder="Ex: TechRecruit Solutions"
+                required
+              />
             </div>
-          )}
+          </div>
           
-          {activeTab === 'notifications' && (
-            <div className="card animate-fade-in">
-              <h2 className="text-xl font-semibold mb-6">Notificações</h2>
-              
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Novas Candidaturas</h3>
-                    <p className="text-sm text-dark-300">
-                      Receba notificações quando novos candidatos se aplicarem às suas vagas.
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked />
-                    <div className="w-11 h-6 bg-dark-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-dark-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
-                  </label>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Atualizações de Candidatos</h3>
-                    <p className="text-sm text-dark-300">
-                      Receba notificações quando um candidato atualizar seu perfil.
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" />
-                    <div className="w-11 h-6 bg-dark-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-dark-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
-                  </label>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Email Diário</h3>
-                    <p className="text-sm text-dark-300">
-                      Receba um resumo diário de todas as atividades.
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked />
-                    <div className="w-11 h-6 bg-dark-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-dark-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
-                  </label>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Alertas de Segurança</h3>
-                    <p className="text-sm text-dark-300">
-                      Receba notificações sobre atividades suspeitas em sua conta.
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked />
-                    <div className="w-11 h-6 bg-dark-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-dark-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
-                  </label>
-                </div>
-                
-                <div className="pt-4">
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => alert('Notification settings would be saved here.')}
-                  >
-                    Salvar Configurações
-                  </button>
-                </div>
+          <div>
+            <label htmlFor="company-description" className="block text-sm font-medium text-dark-200 mb-2">
+              Descrição da Empresa
+            </label>
+            <div className="relative">
+              <div className="absolute top-3 left-3 pointer-events-none">
+                <FileText size={18} className="text-dark-400" />
               </div>
+              <textarea
+                id="company-description"
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                className="form-input pl-10 min-h-[80px]"
+                placeholder="Descreva sua empresa, cultura e valores..."
+                rows={3}
+              />
             </div>
-          )}
+          </div>
           
-          {activeTab === 'privacy' && (
-            <div className="card animate-fade-in">
-              <h2 className="text-xl font-semibold mb-6">Privacidade</h2>
-              
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Perfil Público</h3>
-                    <p className="text-sm text-dark-300">
-                      Tornar seu perfil visível para candidatos não registrados.
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked />
-                    <div className="w-11 h-6 bg-dark-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-dark-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
-                  </label>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Compartilhar Dados de Análise</h3>
-                    <p className="text-sm text-dark-300">
-                      Ajude-nos a melhorar compartilhando dados de uso anônimos.
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" />
-                    <div className="w-11 h-6 bg-dark-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-dark-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
-                  </label>
-                </div>
-                
-                <div className="pt-6 border-t border-dark-700">
-                  <h3 className="text-lg font-medium mb-3">Exportar Dados</h3>
-                  <p className="text-dark-300 mb-4">
-                    Baixe uma cópia de todos os seus dados armazenados no TalentLink.
-                  </p>
-                  <button
-                    type="button"
-                    className="btn btn-outline"
-                    onClick={() => alert('Data export would be implemented here.')}
-                  >
-                    Exportar Meus Dados
-                  </button>
-                </div>
-                
-                <div className="pt-6 border-t border-dark-700">
-                  <h3 className="text-lg font-medium mb-3 text-red-400">Zona de Perigo</h3>
-                  <p className="text-dark-300 mb-4">
-                    Ações permanentes que não podem ser desfeitas.
-                  </p>
-                  <button
-                    type="button"
-                    className="btn text-white bg-red-500 hover:bg-red-600"
-                    onClick={() => {
-                      const confirm = window.confirm(
-                        'Esta ação não pode ser desfeita. Tem certeza que deseja excluir sua conta?'
-                      );
-                      if (confirm) {
-                        alert('Account deletion would be implemented here.');
-                      }
-                    }}
-                  >
-                    Excluir Minha Conta
-                  </button>
-                </div>
+          <div>
+            <label htmlFor="company-address" className="block text-sm font-medium text-dark-200 mb-2">
+              Endereço da Empresa *
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <MapPin size={18} className="text-dark-400" />
               </div>
+              <input
+                type="text"
+                id="company-address"
+                value={formData.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
+                className="form-input pl-10"
+                placeholder="Ex: Rua das Flores, 123 - São Paulo, SP"
+                required
+              />
             </div>
-          )}
-        </div>
+          </div>
+          
+          <div>
+            <label htmlFor="logo-url" className="block text-sm font-medium text-dark-200 mb-2">
+              URL da Logo (opcional)
+            </label>
+            <input
+              type="url"
+              id="logo-url"
+              value={formData.logoUrl}
+              onChange={(e) => handleInputChange('logoUrl', e.target.value)}
+              className="form-input"
+              placeholder="Ex: https://sua-empresa.com/logo.png"
+            />
+            <p className="text-xs text-dark-400 mt-1">
+              Você pode usar uma URL externa para sua logo ou fazer upload de um arquivo
+            </p>
+          </div>
+          
+          <div className="pt-4">
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <span className="inline-block animate-pulse">Salvando...</span>
+              ) : (
+                <span>{company ? 'Atualizar Empresa' : 'Criar Empresa'}</span>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

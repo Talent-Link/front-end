@@ -6,7 +6,7 @@ const HeaderCandidato: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userPhotoUrl = user?.photoUrl || "https://via.placeholder.com/32";
+  const userPhotoUrl = user?.photoUrl;
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
@@ -62,13 +62,32 @@ const HeaderCandidato: React.FC = () => {
           Candidaturas
         </a>
         <div className="flex items-center gap-3 pl-1">
-<img src={userPhotoUrl} alt="User" className="w-8 h-8 rounded-full border-2 border-purple-400" />
-            <button
-              onClick={handleLogout}
-              className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-3 py-1 rounded transition-colors font-semibold border border-pink-500 hover:border-pink-600 border-[1px]"
-            >
-              Sair
-            </button>
+          <button
+            onClick={() => navigate("/perfil")}
+            className="focus:outline-none hover:scale-105 transition-transform"
+            title="Editar perfil"
+          >
+            {userPhotoUrl ? (
+              <img src={userPhotoUrl} alt="User" className="w-8 h-8 rounded-full border-2 border-purple-400 hover:border-pink-400 transition-colors" />
+            ) : (
+              <div className="w-8 h-8 rounded-full border-2 border-purple-400 hover:border-pink-400 transition-colors bg-gray-600 flex items-center justify-center">
+                <svg
+                  className="w-4 h-4 text-gray-300"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                </svg>
+              </div>
+            )}
+          </button>
+          <button
+            onClick={handleLogout}
+            className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-3 py-1 rounded transition-colors font-semibold border border-pink-500 hover:border-pink-600 border-[1px]"
+          >
+            Sair
+          </button>
         </div>
       </nav>
     </header>

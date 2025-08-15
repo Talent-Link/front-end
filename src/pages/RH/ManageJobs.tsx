@@ -116,8 +116,14 @@ const ManageJobs = () => {
     navigate("/dashboardRH/create-job");
   };
 
-  const handleEditJob = (id: string) => {
-    navigate(`/dashboardRH/create-job?id=${id}`);
+  const handleEditJob = (id: string, currentJobData?: Job) => {
+    // Redireciona para a página de edição, passando dados atuais (se disponível)
+    // A página EditJob pode carregar dados frescos da API se necessário
+    navigate(`/dashboardRH/edit-job/${id}`, {
+      state: {
+        jobData: currentJobData
+      }
+    });
   };
 
   const handleDeactivateJob = (id: string) => {

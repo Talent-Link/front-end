@@ -15,8 +15,8 @@ const ChoiceScreen: React.FC = () => {
 
     return (
         <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white p-4">
-            <h1 className="text-4xl font-bold mb-2">Bem-vindo ao TalentLink</h1>
-            <p className="text-lg mb-8">Escolha como deseja acessar:</p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 text-center">Bem-vindo ao TalentLink</h1>
+            <p className="text-base md:text-lg mb-8 text-center">Escolha como deseja acessar:</p>
 
             <div className="flex flex-col md:flex-row gap-8">
                 <div className="bg-gray-800 p-6 rounded-xl flex flex-col items-center text-center transition duration-300 hover:scale-105">

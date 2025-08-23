@@ -167,6 +167,26 @@ export const dashboardService = {
       console.error('Erro ao buscar detalhes da vaga:', error);
       throw error;
     }
+  },
+
+  // 🆕 Buscar vagas recentes
+  async getRecentJobs(limit: number = 3): Promise<any[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/opportunities/recent?limit=${limit}`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar vagas recentes: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result.data || result;
+    } catch (error) {
+      console.error('Erro ao buscar vagas recentes:', error);
+      throw error;
+    }
   }
 };
 

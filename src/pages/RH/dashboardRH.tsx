@@ -22,7 +22,8 @@ import {
   Legend,
   ArcElement,
 } from "chart.js";
-import dashboardService, {
+import dashboardService from "../../services/dashboardService";
+import type {
   DashboardMetrics,
   CandidatoQualificado,
 } from "../../services/dashboardService";
@@ -94,13 +95,14 @@ const DashboardRH = () => {
     }
   };
 
-  // Função para buscar vagas recentes (mantendo a existente)
+  // Função para buscar vagas recentes
   const fetchRecentJobs = async () => {
     try {
-      const res = await fetch("/api/jobs?limit=3");
-      const data = await res.json();
+      const data = await dashboardService.getRecentJobs(3);
+      console.log("Vagas recentes carregadas:", data);
       setRecentJobs(data);
     } catch (err) {
+      console.error("Erro ao buscar vagas recentes:", err);
       setRecentJobs([]);
     }
   };

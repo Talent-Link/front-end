@@ -51,13 +51,13 @@ const LoginCandidato: React.FC = () => {
           .
         </p>
 
-        {/* <Button>
+        <Button>
           <div className="flex items-center justify-center w-full">
             <a href="/ChoiceScreen" className="text-white hover:text-pink-300 transition-colors">
               Tela de Escolha
             </a>
           </div>
-        </Button> */}
+        </Button>
       </div>
     </div>
   );

@@ -316,6 +316,52 @@ export const profileService = {
     });
 
     return errors;
+  },
+
+  // Buscar perfil de candidato específico (para RH)
+  async getCandidateProfile(candidateId: string): Promise<any> {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado');
+      }
+
+      const url = `${API_BASE_URL}/candidates/profile/${candidateId}`;
+      console.log('🔗 Fazendo requisição para:', url);
+      console.log('🎯 CandidateId recebido:', candidateId);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log('📡 Status da resposta:', response.status, response.statusText);
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error(`Candidato com ID "${candidateId}" não possui perfil completo ou o ID está incorreto`);
+        }
+        if (response.status === 403) {
+          throw new Error('Acesso negado - apenas usuários RH podem acessar');
+        }
+        if (response.status === 401) {
+          throw new Error('Token inválido ou expirado');
+        }
+        
+        const error = await response.json();
+        throw new Error(error.message || `Erro ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Dados do perfil recebidos:', data);
+      return data;
+    } catch (error: any) {
+      console.error('❌ Erro detalhado:', error);
+      throw error;
+    }
   }
 };
 

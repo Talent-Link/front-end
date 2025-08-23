@@ -30,6 +30,7 @@ import CreateJob from "./pages/RH/CreateJob";
 import EditJob from "./pages/RH/EditJob";
 import ManageJobs from "./pages/RH/ManageJobs";
 import CandidateProfile from "./pages/RH/CandidateProfile";
+import CandidateProfileView from "./pages/RH/CandidateProfileView";
 import TalentBank from "./pages/RH/TalentBank";
 import Reports from "./pages/RH/Reports";
 import Settings from "./pages/RH/Settings";
@@ -86,6 +87,7 @@ function App() {
           <Route path="/loginRH" element={<LoginRH />} />
           <Route path="/registerRH" element={<RegisterRH />} />
           <Route path="/api-test" element={<ApiTestPage />} />
+          <Route path="/candidates/profile/:candidateId" element={<CandidateProfileView />} />
           <Route path="/dashboard-rh" element={<DashboardLayout />}>
             <Route index element={<DashboardRH />} />
             <Route path="create-job" element={<CreateJob />} />

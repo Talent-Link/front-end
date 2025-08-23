@@ -1,13 +1,20 @@
-import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Download, ArrowUpDown, Heart, HeartOff, RefreshCw, AlertCircle } from 'lucide-react';
-import CandidateCard from '../../components/CandidateCard';
-import { useTalentBank } from '../../hooks/useTalentBank';
-import { CandidateFilters } from '../../services/talentBankService';
+import { useState, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Search,
+  Filter,
+  Download,
+  ArrowUpDown,
+  RefreshCw,
+  AlertCircle,
+} from "lucide-react";
+import TalentBankCandidateCard from "../../components/TalentBankCandidateCard";
+import { useTalentBank } from "../../hooks/useTalentBank";
+import { CandidateFilters } from "../../services/talentBankService";
 
 const TalentBank = () => {
   const navigate = useNavigate();
-  
+
   // Estados do hook customizado
   const {
     candidates,
@@ -17,21 +24,20 @@ const TalentBank = () => {
     hasMore,
     applyFilters,
     clearFilters,
-    exportCandidates,
     favoriteCandidate,
     unfavoriteCandidate,
     refreshCandidates,
     loadMoreCandidates,
     favoriteCandidates,
-    approvedCandidates
   } = useTalentBank();
 
   // Estados locais para filtros da UI
-  const [searchTerm, setSearchTerm] = useState('');
-  const [skillFilter, setSkillFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('date');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [skillFilter, setSkillFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("date");
   const [showFavorites, setShowFavorites] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   /**
    * Aplicar filtros quando mudarem
@@ -40,22 +46,33 @@ const TalentBank = () => {
     const filters: CandidateFilters = {
       search: searchTerm.trim() || undefined,
       skills: skillFilter.trim() || undefined,
-      status: statusFilter !== 'all' ? statusFilter : undefined,
-      sortBy: sortBy as 'date' | 'score' | 'name',
-      page: 1
+      status: statusFilter !== "all" ? statusFilter : undefined,
+      sortBy: sortBy as "date" | "score" | "name",
+      page: 1,
     };
-    
+
     applyFilters(filters);
   }, [searchTerm, skillFilter, statusFilter, sortBy, applyFilters]);
+
+  /**
+   * Aplicar filtros automaticamente quando os valores mudarem
+   */
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      handleApplyFilters();
+    }, 500); // Debounce de 500ms
+
+    return () => clearTimeout(timeoutId);
+  }, [handleApplyFilters]);
 
   /**
    * Limpar todos os filtros
    */
   const handleClearFilters = useCallback(() => {
-    setSearchTerm('');
-    setSkillFilter('');
-    setStatusFilter('all');
-    setSortBy('date');
+    setSearchTerm("");
+    setSkillFilter("");
+    setStatusFilter("all");
+    setSortBy("date");
     setShowFavorites(false);
     clearFilters();
   }, [clearFilters]);
@@ -63,36 +80,37 @@ const TalentBank = () => {
   /**
    * Visualizar candidato
    */
-  const handleViewCandidate = useCallback((id: string) => {
-    navigate(`candidate/${id}`);
-  }, [navigate]);
+  const handleViewCandidate = useCallback(
+    (id: string) => {
+      navigate(`/candidates/profile/${id}`);
+    },
+    [navigate]
+  );
 
   /**
    * Exportar lista
    */
   const handleExportList = useCallback(async () => {
-    try {
-      await exportCandidates();
-    } catch (error) {
-      console.error('Erro ao exportar:', error);
-      // Aqui você pode adicionar uma notificação de erro
-    }
-  }, [exportCandidates]);
+    setShowExportModal(true);
+  }, []);
 
   /**
    * Toggle favorito
    */
-  const handleToggleFavorite = useCallback(async (candidateId: string, isFavorite: boolean) => {
-    try {
-      if (isFavorite) {
-        await unfavoriteCandidate(candidateId);
-      } else {
-        await favoriteCandidate(candidateId);
+  const handleToggleFavorite = useCallback(
+    async (candidateId: string, isFavorite: boolean) => {
+      try {
+        if (isFavorite) {
+          await unfavoriteCandidate(candidateId);
+        } else {
+          await favoriteCandidate(candidateId);
+        }
+      } catch (error) {
+        console.error("Erro ao alterar favorito:", error);
       }
-    } catch (error) {
-      console.error('Erro ao alterar favorito:', error);
-    }
-  }, [favoriteCandidate, unfavoriteCandidate]);
+    },
+    [favoriteCandidate, unfavoriteCandidate]
+  );
 
   // Candidatos para exibir (favoritos ou todos)
   const displayCandidates = showFavorites ? favoriteCandidates : candidates;
@@ -116,7 +134,9 @@ const TalentBank = () => {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-white mb-2">Erro ao carregar candidatos</h2>
+          <h2 className="text-xl font-semibold text-white mb-2">
+            Erro ao carregar candidatos
+          </h2>
           <p className="text-dark-300 mb-4">{error}</p>
           <button
             onClick={refreshCandidates}
@@ -139,32 +159,11 @@ const TalentBank = () => {
           <p className="text-dark-300 mt-1">
             {total} candidatos encontrados
             {showFavorites && ` • ${favoriteCandidates.length} favoritos`}
-            {' • '}
-            {approvedCandidates.length} aprovados
+            {" • "}
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowFavorites(!showFavorites)}
-            className={`btn ${showFavorites ? 'btn-primary' : 'btn-outline'} flex items-center`}
-          >
-            {showFavorites ? (
-              <><Heart size={18} className="mr-2" />Favoritos</>
-            ) : (
-              <><HeartOff size={18} className="mr-2" />Todos</>
-            )}
-          </button>
-          
-          <button
-            onClick={refreshCandidates}
-            disabled={isLoading}
-            className="btn btn-outline flex items-center"
-          >
-            <RefreshCw size={18} className={`mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            <span>Atualizar</span>
-          </button>
-          
           <button
             onClick={handleExportList}
             className="btn btn-outline flex items-center"
@@ -174,7 +173,7 @@ const TalentBank = () => {
           </button>
         </div>
       </div>
-      
+
       {/* Advanced Filters */}
       <div className="card p-4">
         <div className="flex flex-col md:flex-row gap-4">
@@ -187,110 +186,42 @@ const TalentBank = () => {
               placeholder="Buscar por nome ou email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleApplyFilters()}
+              onKeyPress={(e) => e.key === "Enter" && handleApplyFilters()}
               className="form-input pl-10 w-full"
             />
           </div>
-          
-          <div className="md:w-48">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Filter size={18} className="text-dark-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Filtrar por habilidade"
-                value={skillFilter}
-                onChange={(e) => setSkillFilter(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleApplyFilters()}
-                className="form-input pl-10 w-full"
-              />
-            </div>
-          </div>
-          
-          <div className="md:w-48">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="form-input w-full"
-            >
-              <option value="all">Todos os Status</option>
-              <option value="Approved">Aprovados</option>
-              <option value="Rejected">Rejeitados</option>
-              <option value="Pending">Pendentes</option>
-            </select>
-          </div>
-          
-          <div className="md:w-48">
-            <div className="relative">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="form-input w-full appearance-none"
-              >
-                <option value="date">Ordenar por Data</option>
-                <option value="score">Ordenar por Pontuação</option>
-                <option value="name">Ordenar por Nome</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <ArrowUpDown size={18} className="text-dark-400" />
-              </div>
-            </div>
-          </div>
-          
+
           <div className="flex gap-2">
             <button
               onClick={handleApplyFilters}
-              disabled={isLoading}
-              className="btn btn-primary whitespace-nowrap"
+              className="btn btn-primary flex items-center"
             >
-              {isLoading ? 'Buscando...' : 'Aplicar'}
+              <Search size={16} className="mr-1" />
+              Buscar
             </button>
-            
-            <button
-              onClick={handleClearFilters}
-              className="btn btn-outline whitespace-nowrap"
-            >
+            <button onClick={handleClearFilters} className="btn btn-outline">
               Limpar
             </button>
           </div>
         </div>
       </div>
-      
+
       {/* Candidates list */}
       {displayCandidates.length > 0 ? (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayCandidates.map((candidate) => (
-              <div key={candidate.id} className="relative">
-                <CandidateCard
-                  candidate={{
-                    ...candidate,
-                    phone: candidate.phone || 'N/A'
-                  }}
-                  onView={handleViewCandidate}
-                />
-                
-                {/* Botão de favorito */}
-                <button
-                  onClick={() => handleToggleFavorite(candidate.id, candidate.isFavorite || false)}
-                  className={`absolute top-3 right-3 p-2 rounded-full transition-colors ${
-                    candidate.isFavorite
-                      ? 'bg-pink-500 text-white hover:bg-pink-600'
-                      : 'bg-dark-800 text-dark-300 hover:bg-dark-700 hover:text-pink-500'
-                  }`}
-                  title={candidate.isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-                >
-                  {candidate.isFavorite ? (
-                    <Heart size={16} className="fill-current" />
-                  ) : (
-                    <Heart size={16} />
-                  )}
-                </button>
-              </div>
+              <TalentBankCandidateCard
+                key={candidate.id}
+                candidate={candidate}
+                onView={handleViewCandidate}
+                onFavoriteToggle={(id) =>
+                  handleToggleFavorite(id, candidate.isFavorite || false)
+                }
+              />
             ))}
           </div>
-          
+
           {/* Load More Button */}
           {hasMore && !showFavorites && (
             <div className="flex justify-center">
@@ -299,7 +230,7 @@ const TalentBank = () => {
                 disabled={isLoading}
                 className="btn btn-outline"
               >
-                {isLoading ? 'Carregando...' : 'Carregar Mais'}
+                {isLoading ? "Carregando..." : "Carregar Mais"}
               </button>
             </div>
           )}
@@ -311,19 +242,42 @@ const TalentBank = () => {
               <Search size={24} className="text-dark-300" />
             </div>
             <h3 className="text-xl font-medium mb-1">
-              {showFavorites ? 'Nenhum candidato favoritado' : 'Nenhum candidato encontrado'}
+              {showFavorites
+                ? "Nenhum candidato favoritado"
+                : "Nenhum candidato encontrado"}
             </h3>
             <p className="text-dark-400 mb-6">
-              {showFavorites 
-                ? 'Você ainda não possui candidatos favoritos.'
-                : 'Não encontramos candidatos com os filtros aplicados.'
-              }
+              {showFavorites
+                ? "Você ainda não possui candidatos favoritos."
+                : "Não encontramos candidatos com os filtros aplicados."}
             </p>
-            <button 
-              onClick={showFavorites ? () => setShowFavorites(false) : handleClearFilters} 
+            <button
+              onClick={
+                showFavorites
+                  ? () => setShowFavorites(false)
+                  : handleClearFilters
+              }
               className="btn btn-outline"
             >
-              {showFavorites ? 'Ver Todos os Candidatos' : 'Limpar Filtros'}
+              {showFavorites ? "Ver Todos os Candidatos" : "Limpar Filtros"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-dark-800 rounded-lg p-6 border border-dark-700 shadow-lg max-w-xs w-full text-center">
+            <h2 className="text-lg font-semibold text-white mb-2">Em breve!</h2>
+            <p className="text-gray-300 mb-4">
+              A exportação do banco de talentos estará disponível em breve.
+            </p>
+            <button
+              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              onClick={() => setShowExportModal(false)}
+            >
+              OK
             </button>
           </div>
         </div>

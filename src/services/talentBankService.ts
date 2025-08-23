@@ -29,6 +29,7 @@ export interface TalentBankCandidate {
   status: 'Approved' | 'Rejected' | 'Pending';
   photoUrl?: string;
   isFavorite?: boolean;
+  opportunities?: string; // Campo adicional com as oportunidades do candidato
 }
 
 // Interface para resposta da API de candidatos
@@ -180,21 +181,11 @@ class TalentBankService {
   }
 
   /**
-   * GET /bank-talents - Obter banco de talentos
+   * GET /bank-talents - Obter banco de talentos (candidatos favoritados)
    */
   async getTalentBank(filters: CandidateFilters = {}): Promise<CandidatesResponse> {
     try {
-      const queryParams = new URLSearchParams();
-      
-      if (filters.search) queryParams.append('search', filters.search);
-      if (filters.skills) queryParams.append('skills', filters.skills);
-      if (filters.status && filters.status !== 'all') queryParams.append('status', filters.status);
-      if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
-      if (filters.sortOrder) queryParams.append('sortOrder', filters.sortOrder);
-      if (filters.page) queryParams.append('page', filters.page.toString());
-      if (filters.limit) queryParams.append('limit', filters.limit.toString());
-
-      const url = `${API_BASE_URL}/bank-talents${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const url = `${API_BASE_URL}/bank-talents`;
       
       console.log('🔍 Fazendo requisição para banco de talentos:', url);
       console.log('📋 Headers:', this.getAuthHeaders());
@@ -217,14 +208,106 @@ class TalentBankService {
         };
       }
       
-      const data = await this.handleResponse<CandidatesResponse>(response);
+      // O endpoint /bank-talents retorna diretamente um array de candidatos favoritados
+      const candidatesData = await response.json();
       
-      // Validar e normalizar a resposta da API
+      // Verificar se a resposta é um array
+      const candidatesArray = Array.isArray(candidatesData) ? candidatesData : [];
+      
+      console.log('📊 Candidatos recebidos do banco de talentos:', candidatesArray);
+      
+      // Transformar a estrutura do backend para a estrutura esperada pelo frontend
+      const transformedCandidates: TalentBankCandidate[] = candidatesArray.map((candidate: any) => {
+        console.log('🔍 Candidato do backend:', candidate);
+        console.log('📋 Campos disponíveis:', Object.keys(candidate));
+        
+        // Use userId se disponível, senão use id
+        const candidateId = candidate.userId || candidate.id;
+        console.log('🎯 ID final usado:', candidateId);
+        
+        return {
+          id: candidateId,
+          name: candidate.name,
+          email: candidate.email,
+          phone: candidate.phone || '',
+          photoUrl: candidate.photoUrl,
+          score: 0, // Não disponível no backend
+          skills: [], // Não disponível diretamente no backend
+          experience: [], // Não disponível diretamente no backend
+          education: [], // Não disponível diretamente no backend
+          appliedAt: new Date().toISOString(), // Data atual como fallback
+          status: 'Approved' as const, // Candidatos favoritados são considerados aprovados
+          isFavorite: true, // Todos os candidatos do banco de talentos são favoritos
+          opportunities: candidate.opportunities || '' // Campo adicional com oportunidades
+        };
+      });
+      
+      // Aplicar filtros localmente já que o endpoint não suporta parâmetros de filtro
+      let filteredCandidates = transformedCandidates;
+      
+      console.log('🔍 Aplicando filtros:', filters);
+      console.log('📊 Candidatos antes dos filtros:', filteredCandidates.length);
+      
+      // Filtro de busca por nome ou email
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase();
+        console.log('🔎 Termo de busca:', searchTerm);
+        
+        filteredCandidates = filteredCandidates.filter(candidate => 
+          candidate.name.toLowerCase().includes(searchTerm) ||
+          candidate.email.toLowerCase().includes(searchTerm)
+        );
+        
+        console.log('📊 Candidatos após busca:', filteredCandidates.length);
+      }
+      
+      // Filtro por habilidades (nas oportunidades já que skills está vazio)
+      if (filters.skills) {
+        const skillTerm = filters.skills.toLowerCase();
+        console.log('🎯 Filtro de habilidade:', skillTerm);
+        
+        filteredCandidates = filteredCandidates.filter(candidate => 
+          candidate.opportunities?.toLowerCase().includes(skillTerm) ||
+          candidate.name.toLowerCase().includes(skillTerm) ||
+          candidate.email.toLowerCase().includes(skillTerm)
+        );
+        
+        console.log('📊 Candidatos após filtro de habilidade:', filteredCandidates.length);
+      }
+      
+      // Ordenação
+      if (filters.sortBy) {
+        filteredCandidates.sort((a, b) => {
+          let compareValue = 0;
+          
+          switch (filters.sortBy) {
+            case 'name':
+              compareValue = a.name.localeCompare(b.name);
+              break;
+            case 'date':
+              compareValue = new Date(a.appliedAt).getTime() - new Date(b.appliedAt).getTime();
+              break;
+            case 'score':
+              compareValue = (a.score || 0) - (b.score || 0);
+              break;
+          }
+          
+          return filters.sortOrder === 'desc' ? -compareValue : compareValue;
+        });
+      }
+      
+      // Paginação local
+      const page = filters.page || 1;
+      const limit = filters.limit || 20;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedCandidates = filteredCandidates.slice(startIndex, endIndex);
+      
       const normalizedResponse: CandidatesResponse = {
-        candidates: Array.isArray(data.candidates) ? data.candidates : [],
-        total: typeof data.total === 'number' ? data.total : 0,
-        page: typeof data.page === 'number' ? data.page : (filters.page || 1),
-        limit: typeof data.limit === 'number' ? data.limit : (filters.limit || 20)
+        candidates: paginatedCandidates,
+        total: filteredCandidates.length,
+        page: page,
+        limit: limit
       };
       
       console.log('✅ Banco de talentos normalizado:', normalizedResponse);

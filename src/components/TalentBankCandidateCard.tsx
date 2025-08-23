@@ -1,5 +1,7 @@
-import { Star, Mail, Phone, Calendar, Award } from 'lucide-react';
-import { TalentBankCandidate } from '../services/talentBankService';
+import { useState } from "react";
+import { Star, Mail, Phone } from "lucide-react";
+import { TalentBankCandidate } from "../services/talentBankService";
+import UnfavoriteModal from "./UnfavoriteModal";
 
 interface TalentBankCandidateCardProps {
   candidate: TalentBankCandidate;
@@ -7,10 +9,18 @@ interface TalentBankCandidateCardProps {
   onFavoriteToggle: (id: string) => void;
 }
 
-const TalentBankCandidateCard = ({ candidate, onView, onFavoriteToggle }: TalentBankCandidateCardProps) => {
-  // Formatar a data
-  const formattedDate = new Date(candidate.appliedAt).toLocaleDateString('pt-BR');
-  
+const TalentBankCandidateCard = ({
+  candidate,
+  onView,
+  onFavoriteToggle,
+}: TalentBankCandidateCardProps) => {
+  const [showUnfavoriteModal, setShowUnfavoriteModal] = useState(false);
+
+  // // Formatar a data
+  // const formattedDate = new Date(candidate.appliedAt).toLocaleDateString(
+  //   "pt-BR"
+  // );
+
   // Obter as 3 principais habilidades
   const topSkills = candidate.skills?.slice(0, 3) || [];
 
@@ -23,8 +33,8 @@ const TalentBankCandidateCard = ({ candidate, onView, onFavoriteToggle }: Talent
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center">
           {candidate.photoUrl ? (
-            <img 
-              src={candidate.photoUrl} 
+            <img
+              src={candidate.photoUrl}
               alt={candidate.name}
               className="w-12 h-12 rounded-full object-cover mr-3"
             />
@@ -36,21 +46,15 @@ const TalentBankCandidateCard = ({ candidate, onView, onFavoriteToggle }: Talent
             </div>
           )}
           <div>
-            <h3 className="text-xl font-semibold text-white mb-1">{candidate.name}</h3>
+            <h3 className="text-xl font-semibold text-white mb-1">
+              {candidate.name}
+            </h3>
             <p className="text-sm text-dark-300 flex items-center">
               <Mail size={14} className="mr-1" />
               {candidate.email}
             </p>
           </div>
         </div>
-        
-        {/* Score */}
-        {candidate.score !== undefined && (
-          <div className="flex items-center bg-gradient-to-r from-yellow-400 to-orange-500 px-3 py-1 rounded-full">
-            <Award size={16} className="text-white mr-1" />
-            <span className="text-sm font-bold text-white">{candidate.score}</span>
-          </div>
-        )}
       </div>
 
       {/* Contact Info */}
@@ -66,9 +70,23 @@ const TalentBankCandidateCard = ({ candidate, onView, onFavoriteToggle }: Talent
         <div className="mb-4">
           <div className="text-sm text-dark-200 mb-1">Experiência Atual:</div>
           <div className="bg-dark-700 p-3 rounded-lg">
-            <h4 className="font-medium text-white">{latestExperience.position}</h4>
+            <h4 className="font-medium text-white">
+              {latestExperience.position}
+            </h4>
             <p className="text-sm text-dark-300">{latestExperience.company}</p>
             <p className="text-xs text-dark-400">{latestExperience.duration}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Opportunities */}
+      {candidate.opportunities && candidate.opportunities.trim() && (
+        <div className="mb-4">
+          <div className="text-sm text-dark-200 mb-2">
+            Oportunidades Aplicadas:
+          </div>
+          <div className="bg-dark-700 p-3 rounded-lg">
+            <p className="text-sm text-white">{candidate.opportunities}</p>
           </div>
         </div>
       )}
@@ -76,7 +94,9 @@ const TalentBankCandidateCard = ({ candidate, onView, onFavoriteToggle }: Talent
       {/* Skills */}
       {topSkills.length > 0 && (
         <div className="mb-4">
-          <div className="text-sm text-dark-200 mb-2">Principais Habilidades:</div>
+          <div className="text-sm text-dark-200 mb-2">
+            Principais Habilidades:
+          </div>
           <div className="flex flex-wrap gap-1">
             {topSkills.map((skill, index) => (
               <span
@@ -95,47 +115,69 @@ const TalentBankCandidateCard = ({ candidate, onView, onFavoriteToggle }: Talent
         </div>
       )}
 
-      {/* Status */}
+      {/* Status
       <div className="mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <div className={`w-2 h-2 rounded-full mr-2 ${
-              candidate.status === 'Approved' ? 'bg-green-500' :
-              candidate.status === 'Rejected' ? 'bg-red-500' : 'bg-yellow-500'
-            }`}></div>
-            <span className={`text-sm font-medium ${
-              candidate.status === 'Approved' ? 'text-green-400' :
-              candidate.status === 'Rejected' ? 'text-red-400' : 'text-yellow-400'
-            }`}>
-              {candidate.status === 'Approved' ? 'Aprovado' :
-               candidate.status === 'Rejected' ? 'Rejeitado' : 'Pendente'}
+            <div
+              className={`w-2 h-2 rounded-full mr-2 ${
+                candidate.status === "Approved"
+                  ? "bg-green-500"
+                  : candidate.status === "Rejected"
+                  ? "bg-red-500"
+                  : "bg-yellow-500"
+              }`}
+            ></div>
+            <span
+              className={`text-sm font-medium ${
+                candidate.status === "Approved"
+                  ? "text-green-400"
+                  : candidate.status === "Rejected"
+                  ? "text-red-400"
+                  : "text-yellow-400"
+              }`}
+            >
+              {candidate.status === "Approved"
+                ? "Aprovado"
+                : candidate.status === "Rejected"
+                ? "Rejeitado"
+                : "Pendente"}
             </span>
           </div>
-          
+
           <div className="flex items-center text-dark-400">
             <Calendar size={14} className="mr-1" />
             <span className="text-xs">{formattedDate}</span>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Favorite Button */}
       <button
         onClick={(e) => {
           e.stopPropagation();
-          onFavoriteToggle(candidate.id);
+          if (candidate.isFavorite) {
+            onFavoriteToggle(candidate.id);
+            setShowUnfavoriteModal(true);
+          } else {
+            onFavoriteToggle(candidate.id);
+          }
         }}
         className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-200 ${
           candidate.isFavorite
-            ? 'text-yellow-400 bg-yellow-400/20 hover:bg-yellow-400/30 scale-110'
-            : 'text-gray-400 bg-dark-700/50 hover:text-yellow-400 hover:bg-yellow-400/20 hover:scale-105'
+            ? "text-yellow-400 bg-yellow-400/20 hover:bg-yellow-400/30 scale-110"
+            : "text-gray-400 bg-dark-700/50 hover:text-yellow-400 hover:bg-yellow-400/20 hover:scale-105"
         }`}
-        title={candidate.isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+        title={
+          candidate.isFavorite
+            ? "Remover dos favoritos"
+            : "Adicionar aos favoritos"
+        }
       >
-        <Star 
-          size={18} 
-          fill={candidate.isFavorite ? 'currentColor' : 'none'}
-          className={candidate.isFavorite ? 'drop-shadow-lg' : ''}
+        <Star
+          size={18}
+          fill={candidate.isFavorite ? "currentColor" : "none"}
+          className={candidate.isFavorite ? "drop-shadow-lg" : ""}
         />
       </button>
 
@@ -147,9 +189,9 @@ const TalentBankCandidateCard = ({ candidate, onView, onFavoriteToggle }: Talent
         >
           Ver Detalhes
         </button>
-        
+
         <button
-          onClick={() => window.open(`mailto:${candidate.email}`, '_blank')}
+          onClick={() => window.open(`mailto:${candidate.email}`, "_blank")}
           className="flex-1 bg-dark-600 hover:bg-dark-500 text-white py-2 px-4 rounded font-medium transition-colors flex items-center justify-center"
         >
           <Mail size={16} className="mr-1" />
@@ -159,6 +201,13 @@ const TalentBankCandidateCard = ({ candidate, onView, onFavoriteToggle }: Talent
 
       {/* Hover Effect Overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-pink-500/5 to-purple-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+      {/* UnfavoriteModal */}
+      <UnfavoriteModal
+        isOpen={showUnfavoriteModal}
+        candidateName={candidate.name}
+        onClose={() => setShowUnfavoriteModal(false)}
+      />
     </div>
   );
 };

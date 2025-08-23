@@ -10,6 +10,8 @@ import {
   LogOut,
   Menu,
   X,
+  FolderKanban,
+  BookCopy
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -21,15 +23,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
-
   const navigation = [
     { name: "Dashboard", icon: LayoutDashboard, path: "." },
     { name: "Criar oportunidade", icon: BriefcaseBusiness, path: "create-job" },
-    { name: "Gerenciar oportunidades", icon: ClipboardList, path: "manage-jobs" },
+    { name: "Gerenciar oportunidades", icon: FolderKanban, path: "manage-jobs" },
     { name: "Banco de talentos", icon: Users, path: "talent-bank" },
     { name: "Relatórios", icon: BarChart3, path: "reports" },
     { name: "Criar Formulário", icon: ClipboardList, path: "create-form" },
-    { name: "Meus Formulários", icon: ClipboardList, path: "forms" },
+    { name: "Meus Formulários", icon: BookCopy, path: "forms" },
     { name: "Configurações", icon: Settings, path: "settings" },
   ];
 

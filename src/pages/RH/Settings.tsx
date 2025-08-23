@@ -332,17 +332,19 @@ const Settings = () => {
           </div>
           
           <div className="pt-4">
-            <button
+            <div className="flex justify-end">
+              <button
               type="submit"
               className="btn btn-primary"
               disabled={isSaving}
-            >
+              >
               {isSaving ? (
                 <span className="inline-block animate-pulse">Salvando...</span>
               ) : (
                 <span>{company ? 'Atualizar Empresa' : 'Criar Empresa'}</span>
               )}
-            </button>
+              </button>
+            </div>
           </div>
         </form>
       </div>

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Button from "../../components/Button";
 
 interface Question {
   id: string;
@@ -12,6 +11,7 @@ export default function CreateForm() {
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -102,7 +102,7 @@ export default function CreateForm() {
 
       if (!res.ok) throw new Error("Erro ao criar formulário.");
 
-      alert("Formulário criado com sucesso!");
+      setShowSuccessModal(true);
       setFormTitle("");
       setFormDescription("");
       setQuestions([]);
@@ -163,126 +163,240 @@ export default function CreateForm() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-white">Criar Formulário</h1>
-        <p className="text-dark-300">
-          Adicione perguntas personalizadas para sua vaga.
+    <div className="max-w-5xl mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-white mb-2">Criar Formulário</h1>
+        <p className="text-dark-300 text-lg">
+          Configure perguntas personalizadas para processos seletivos
         </p>
       </div>
 
-      <div className="space-y-4">
-        <label className="block text-white font-medium">
-          Título do Formulário
-        </label>
-        <input
-          type="text"
-          value={formTitle}
-          onChange={(e) => setFormTitle(e.target.value)}
-          className="w-full p-2 bg-dark-700 border border-dark-600 text-white rounded"
-          placeholder="Ex: Processo Seletivo - Desenvolvedor(a)"
-        />
-
-        <label className="block text-white font-medium">Descrição</label>
-        <textarea
-          value={formDescription}
-          onChange={(e) => setFormDescription(e.target.value)}
-          className="w-full p-2 bg-dark-700 border border-dark-600 text-white rounded min-h-[100px]"
-          placeholder="Instruções ou objetivos do formulário"
-        />
-      </div>
-
-      <div className="flex flex-wrap gap-4">
-        <Button onClick={() => addQuestion("text")}>
-          + Adicionar pergunta aberta
-        </Button>
-        <Button onClick={() => addQuestion("multiple")}>
-          + Adicionar múltipla escolha
-        </Button>
-        <Button onClick={() => generateAIQuestion("text")}>
-          ✨ Gerar aberta com IA
-        </Button>
-        <Button onClick={() => generateAIQuestion("multiple")}>
-          ✨ Gerar múltipla escolha com IA
-        </Button>
-      </div>
-
-      {questions.map((q, i) => (
-        <div
-          key={q.id}
-          className="p-4 bg-dark-800 border border-dark-700 rounded space-y-4"
-        >
-          <div className="flex justify-between items-center">
-            <h2 className="text-white font-semibold">Pergunta {i + 1}</h2>
-            <button
-              onClick={() => removeQuestion(q.id)}
-              className="text-red-400 text-sm hover:underline"
-            >
-              Remover
-            </button>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-dark-200">Tipo</label>
-            <select
-              value={q.type}
-              onChange={(e) => updateQuestion(q.id, "type", e.target.value)}
-              className="w-full bg-dark-700 border border-dark-600 text-white p-2 rounded"
-            >
-              <option value="text">Texto Aberto</option>
-              <option value="multiple">Múltipla Escolha</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-dark-200">Pergunta</label>
+      {/* Informações básicas do formulário */}
+      <div className="bg-gradient-to-r from-dark-800/50 to-dark-700/50 backdrop-blur-sm border border-dark-600/50 rounded-xl p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-white font-medium mb-3 text-sm uppercase tracking-wide">
+              Título do Formulário
+            </label>
             <input
               type="text"
-              value={q.question}
-              onChange={(e) => updateQuestion(q.id, "question", e.target.value)}
-              className="w-full p-2 bg-dark-700 border border-dark-600 text-white rounded"
-              placeholder="Digite sua pergunta"
+              value={formTitle}
+              onChange={(e) => setFormTitle(e.target.value)}
+              className="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+              placeholder="Nome do processo seletivo"
             />
           </div>
 
-          {q.type === "multiple" && (
-            <div className="space-y-2">
-              <label className="block text-dark-200">Opções</label>
-              {(q.options ?? []).map((opt, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={opt}
-                    onChange={(e) => updateOption(q.id, idx, e.target.value)}
-                    className="flex-1 p-2 bg-dark-700 border border-dark-600 text-white rounded"
-                    placeholder={`Opção ${idx + 1}`}
+          <div>
+            <label className="block text-white font-medium mb-3 text-sm uppercase tracking-wide">
+              Descrição
+            </label>
+            <textarea
+              value={formDescription}
+              onChange={(e) => setFormDescription(e.target.value)}
+              className="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all resize-none"
+              placeholder="Instruções para os candidatos"
+              rows={3}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Ações para adicionar perguntas */}
+      <div className="flex flex-wrap gap-3 justify-center">
+        <button
+          onClick={() => addQuestion("text")}
+          className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+        >
+          <span className="mr-2">📝</span>
+          Pergunta Aberta
+        </button>
+        
+        <button
+          onClick={() => addQuestion("multiple")}
+          className="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+        >
+          <span className="mr-2">📋</span>
+          Múltipla Escolha
+        </button>
+        
+        <button
+          onClick={() => generateAIQuestion("text")}
+          className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+        >
+          <span className="mr-2">✨</span>
+          IA: Aberta
+        </button>
+        
+        <button
+          onClick={() => generateAIQuestion("multiple")}
+          className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+        >
+          <span className="mr-2">🤖</span>
+          IA: Múltipla
+        </button>
+      </div>
+
+      {/* Lista de perguntas */}
+      {questions.length > 0 && (
+        <div className="space-y-4">
+          {questions.map((q, i) => (
+            <div
+              key={q.id}
+              className="bg-gradient-to-r from-dark-800/60 to-dark-700/60 backdrop-blur-sm border border-dark-600/30 rounded-xl p-6 shadow-lg"
+            >
+              {/* Header da pergunta */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    {i + 1}
+                  </div>
+                  <div>
+                    <span className="text-white font-medium">Pergunta {i + 1}</span>
+                    <div className="flex items-center mt-1">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        q.type === "text" 
+                          ? "bg-blue-100 text-blue-800" 
+                          : "bg-green-100 text-green-800"
+                      }`}>
+                        {q.type === "text" ? "📝 Aberta" : "📋 Múltipla"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => removeQuestion(q.id)}
+                  className="text-red-400 hover:text-red-300 hover:bg-red-400/10 p-2 rounded-lg transition-all"
+                  title="Remover pergunta"
+                >
+                  🗑️
+                </button>
+              </div>
+
+              {/* Conteúdo da pergunta */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-dark-200 mb-2 text-sm font-medium">
+                    Pergunta
+                  </label>
+                  <textarea
+                    value={q.question}
+                    onChange={(e) => updateQuestion(q.id, "question", e.target.value)}
+                    className="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all resize-none"
+                    placeholder="Digite sua pergunta..."
+                    rows={2}
                   />
-                  {q.options && q.options.length > 1 && (
+                </div>
+
+                {q.type === "multiple" && (
+                  <div>
+                    <label className="block text-dark-200 mb-3 text-sm font-medium">
+                      Opções de Resposta
+                    </label>
+                    <div className="space-y-2">
+                      {(q.options ?? []).map((opt, idx) => (
+                        <div key={idx} className="flex items-center space-x-3">
+                          <div className="w-6 h-6 bg-dark-600 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                            {String.fromCharCode(65 + idx)}
+                          </div>
+                          <input
+                            type="text"
+                            value={opt}
+                            onChange={(e) => updateOption(q.id, idx, e.target.value)}
+                            className="flex-1 px-4 py-2 bg-dark-900/50 border border-dark-600 text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                            placeholder={`Opção ${String.fromCharCode(65 + idx)}`}
+                          />
+                          {q.options && q.options.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeOption(q.id, idx)}
+                              className="text-red-400 hover:text-red-300 hover:bg-red-400/10 p-2 rounded-lg transition-all"
+                              title="Remover opção"
+                            >
+                              ❌
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    
                     <button
                       type="button"
-                      onClick={() => removeOption(q.id, idx)}
-                      className="text-red-400 text-sm hover:underline"
+                      onClick={() => addOption(q.id)}
+                      className="mt-3 text-blue-400 hover:text-blue-300 text-sm font-medium hover:bg-blue-400/10 px-3 py-1 rounded-lg transition-all"
                     >
-                      Remover
+                      + Adicionar opção
                     </button>
-                  )}
-                </div>
-              ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Botão de ação principal */}
+      <div className="text-center py-8">
+        <div className="mb-4">
+          <span className="text-dark-300 text-sm">
+            {questions.length === 0 
+              ? "Adicione perguntas para criar o formulário" 
+              : `${questions.length} pergunta${questions.length > 1 ? 's' : ''} criada${questions.length > 1 ? 's' : ''}`
+            }
+          </span>
+        </div>
+        
+        <button
+          onClick={handleSubmit}
+          disabled={!formTitle.trim() || questions.length === 0}
+          className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none transition-all"
+        >
+          <span className="mr-2">🚀</span>
+          Criar Formulário
+        </button>
+        
+        {(!formTitle.trim() || questions.length === 0) && (
+          <div className="mt-4 text-sm text-yellow-400/80">
+            {!formTitle.trim() && <div>• Adicione um título</div>}
+            {questions.length === 0 && <div>• Adicione pelo menos uma pergunta</div>}
+          </div>
+        )}
+      </div>
+
+      {/* Modal de Sucesso */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-dark-800 to-dark-900 border border-dark-600 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl transform animate-bounce-in">
+            <div className="text-center">
+              {/* Ícone de sucesso */}
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">✅</span>
+              </div>
+              
+              {/* Título */}
+              <h3 className="text-2xl font-bold text-white mb-2">
+                Formulário Criado!
+              </h3>
+              
+              {/* Descrição */}
+              <p className="text-dark-300 mb-6">
+                Seu formulário foi criado com sucesso e está pronto para ser usado nos processos seletivos.
+              </p>
+              
+              {/* Botão */}
               <button
-                type="button"
-                onClick={() => addOption(q.id)}
-                className="text-sm text-blue-400 hover:underline"
+                onClick={() => setShowSuccessModal(false)}
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105 shadow-lg"
               >
-                + Adicionar opção
+                <span className="mr-2">🎉</span>
+                Perfeito!
               </button>
             </div>
-          )}
+          </div>
         </div>
-      ))}
-
-      <div className="text-center pt-6">
-        <Button onClick={handleSubmit}>Criar Formulário</Button>
-      </div>
+      )}
     </div>
   );
 }

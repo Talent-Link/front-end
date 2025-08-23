@@ -258,12 +258,41 @@ class TalentBankService {
       console.log('📡 Status favoritar:', response.status, response.statusText);
 
       if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Candidato favoritado:', result);
-        return result;
+        // Tenta ler a resposta como texto primeiro
+        const responseText = await response.text();
+        console.log('📋 Resposta do servidor:', responseText);
+        
+        // Se a resposta não está vazia, tenta parsear como JSON
+        if (responseText.trim()) {
+          try {
+            const result = JSON.parse(responseText);
+            console.log('✅ Candidato favoritado (JSON):', result);
+            return result;
+          } catch {
+            // Se não é JSON válido, retorna uma resposta padrão com a mensagem
+            console.log('✅ Candidato favoritado (texto):', responseText);
+            return { message: responseText || 'Candidato favoritado com sucesso!' };
+          }
+        } else {
+          // Resposta vazia, mas sucesso
+          console.log('✅ Candidato favoritado (resposta vazia)');
+          return { message: 'Candidato adicionado ao Banco de Talentos com sucesso!' };
+        }
       } else {
-        const error = await response.json().catch(() => ({ message: 'Erro ao favoritar candidato' }));
-        throw new Error(error.message || 'Erro ao favoritar candidato');
+        // Tenta ler a resposta como texto primeiro
+        const errorText = await response.text();
+        console.log('❌ Erro do servidor:', errorText);
+        
+        // Se a resposta é JSON, tenta parsear
+        let errorMessage = errorText;
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorText;
+        } catch {
+          // Se não é JSON, usa o texto diretamente
+        }
+        
+        throw new Error(errorMessage || 'Erro ao favoritar candidato');
       }
     } catch (error) {
       console.error('❌ Erro ao favoritar candidato:', error);
@@ -297,12 +326,41 @@ class TalentBankService {
       console.log('📡 Status desfavoritar:', response.status, response.statusText);
 
       if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Candidato desfavoritado:', result);
-        return result;
+        // Tenta ler a resposta como texto primeiro
+        const responseText = await response.text();
+        console.log('📋 Resposta do servidor:', responseText);
+        
+        // Se a resposta não está vazia, tenta parsear como JSON
+        if (responseText.trim()) {
+          try {
+            const result = JSON.parse(responseText);
+            console.log('✅ Candidato desfavoritado (JSON):', result);
+            return result;
+          } catch {
+            // Se não é JSON válido, retorna uma resposta padrão com a mensagem
+            console.log('✅ Candidato desfavoritado (texto):', responseText);
+            return { message: responseText || 'Candidato removido do Banco de Talentos com sucesso!' };
+          }
+        } else {
+          // Resposta vazia, mas sucesso
+          console.log('✅ Candidato desfavoritado (resposta vazia)');
+          return { message: 'Candidato removido do Banco de Talentos com sucesso!' };
+        }
       } else {
-        const error = await response.json().catch(() => ({ message: 'Erro ao desfavoritar candidato' }));
-        throw new Error(error.message || 'Erro ao desfavoritar candidato');
+        // Tenta ler a resposta como texto primeiro
+        const errorText = await response.text();
+        console.log('❌ Erro do servidor:', errorText);
+        
+        // Se a resposta é JSON, tenta parsear
+        let errorMessage = errorText;
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorText;
+        } catch {
+          // Se não é JSON, usa o texto diretamente
+        }
+        
+        throw new Error(errorMessage || 'Erro ao desfavoritar candidato');
       }
     } catch (error) {
       console.error('❌ Erro ao desfavoritar candidato:', error);
@@ -347,6 +405,70 @@ class TalentBankService {
     } catch (error) {
       console.error('Erro ao exportar candidatos:', error);
       throw new Error('Não foi possível exportar a lista de candidatos');
+    }
+  }
+
+  // 🔍 Verificar se um candidato específico está favoritado
+  async isCandidateFavorited(candidateId: string): Promise<{ isFavorited: boolean; favoritedAt?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/bank-talents/status/${candidateId}`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return {
+          isFavorited: result.data.isFavorited,
+          favoritedAt: result.data.favoritedAt
+        };
+      } else {
+        // Se der erro, assume que não está favoritado
+        return { isFavorited: false };
+      }
+    } catch (error) {
+      console.error('Erro ao verificar candidato favoritado:', error);
+      return { isFavorited: false };
+    }
+  }
+
+  // 🔍 Verificar múltiplos candidatos de uma vez (batch)
+  async checkMultipleFavorites(candidateIds: string[]): Promise<Record<string, boolean>> {
+    try {
+      console.log('🔍 Iniciando verificação de favoritos para:', candidateIds.length, 'candidatos');
+      
+      // Faz as verificações em paralelo com Promise.allSettled para não falhar se um der erro
+      const promises = candidateIds.map(async (id) => {
+        try {
+          const result = await this.isCandidateFavorited(id);
+          return { id, ...result };
+        } catch (error) {
+          console.warn(`⚠️ Erro ao verificar candidato ${id}:`, error);
+          return { id, isFavorited: false };
+        }
+      });
+      
+      const results = await Promise.allSettled(promises);
+      
+      const favoriteMap: Record<string, boolean> = {};
+      results.forEach((result, index) => {
+        const candidateId = candidateIds[index];
+        if (result.status === 'fulfilled') {
+          favoriteMap[candidateId] = result.value.isFavorited;
+        } else {
+          console.warn(`⚠️ Falha ao verificar candidato ${candidateId}:`, result.reason);
+          favoriteMap[candidateId] = false;
+        }
+      });
+      
+      const favoritedCount = Object.values(favoriteMap).filter(Boolean).length;
+      console.log(`✅ Verificação concluída: ${favoritedCount}/${candidateIds.length} candidatos favoritados`);
+      
+      return favoriteMap;
+    } catch (error) {
+      console.error('Erro ao verificar candidatos favoritados em lote:', error);
+      // Retorna todos como não favoritados em caso de erro
+      return candidateIds.reduce((acc, id) => ({ ...acc, [id]: false }), {});
     }
   }
 

@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Mail, Calendar, Filter, Search, Download, Eye, Phone, BookOpen, GraduationCap } from 'lucide-react';
+import { ArrowLeft, Users, Mail, Calendar, Filter, Search, Download, Eye, Phone, BookOpen, GraduationCap, Star } from 'lucide-react';
 import { jobService, OpportunityCandidate, OpportunityCandidatesResponse } from '../../services/jobService';
+import talentBankService from '../../services/talentBankService';
+import FavoriteModal from '../../components/FavoriteModal';
+import UnfavoriteModal from '../../components/UnfavoriteModal';
 
 const OpportunityCandidates = () => {
   const { jobId } = useParams<{ jobId: string }>();
@@ -13,6 +16,18 @@ const OpportunityCandidates = () => {
   const [error, setError] = useState<string | null>(null);
   const [expandedAnswers, setExpandedAnswers] = useState<string | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [favoritedCandidates, setFavoritedCandidates] = useState<Set<string>>(new Set());
+  const [favoritingCandidate, setFavoritingCandidate] = useState<string | null>(null);
+  
+  // Estados do modal de favoritos
+  const [showFavoriteModal, setShowFavoriteModal] = useState(false);
+  const [modalCandidateName, setModalCandidateName] = useState('');
+  const [modalCandidateId, setModalCandidateId] = useState('');
+  const [modalIsAlreadyFavorited, setModalIsAlreadyFavorited] = useState(false);
+  
+  // Estados do modal de remoção
+  const [showUnfavoriteModal, setShowUnfavoriteModal] = useState(false);
+  const [unfavoriteModalCandidateName, setUnfavoriteModalCandidateName] = useState('');
   
   // Filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,9 +39,47 @@ const OpportunityCandidates = () => {
     }
   }, [jobId]);
 
+  // Efeito separado para carregar favoritos depois que os candidatos foram carregados
+  useEffect(() => {
+    if (data?.candidates?.length) {
+      loadFavoritedCandidates();
+    }
+  }, [data?.candidates]);
+
   useEffect(() => {
     applyFilters();
   }, [data, searchTerm, statusFilter]);
+
+  const loadFavoritedCandidates = async () => {
+    try {
+      // Aguarda os candidatos serem carregados primeiro
+      if (!data?.candidates?.length) {
+        console.log('⏳ Aguardando candidatos serem carregados...');
+        return;
+      }
+
+      // Extrai os IDs de todos os candidatos
+      const candidateIds = data.candidates.map(item => item.candidate.id);
+      console.log('🔍 Verificando status de favoritos para candidatos:', candidateIds);
+      
+      // Verifica o status de favoritos para todos os candidatos de uma vez
+      const favoriteStatuses = await talentBankService.checkMultipleFavorites(candidateIds);
+      
+      // Converte para Set dos IDs favoritados
+      const favoritedIds = new Set(
+        Object.entries(favoriteStatuses)
+          .filter(([_, isFavorited]) => isFavorited)
+          .map(([candidateId, _]) => candidateId)
+      );
+      
+      setFavoritedCandidates(favoritedIds);
+      console.log('⭐ Candidatos favoritados identificados:', favoritedIds.size);
+      
+    } catch (error) {
+      console.error('Erro ao carregar candidatos favoritados:', error);
+      // Não é crítico se falhar, apenas continua sem a informação
+    }
+  };
 
   const loadCandidates = async () => {
     try {
@@ -44,6 +97,83 @@ const OpportunityCandidates = () => {
       setError(err.message || 'Erro ao carregar candidatos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Função para favoritar um candidato
+  const handleFavoriteCandidate = async (candidateId: string, candidateName: string) => {
+    try {
+      // Se já está favoritado, apenas mostra o modal
+      if (favoritedCandidates.has(candidateId)) {
+        setModalCandidateName(candidateName);
+        setModalCandidateId(candidateId);
+        setModalIsAlreadyFavorited(true);
+        setShowFavoriteModal(true);
+        return;
+      }
+
+      setFavoritingCandidate(candidateId);
+      
+      await talentBankService.favoriteCandidate(candidateId);
+      
+      setFavoritedCandidates(prev => new Set(prev).add(candidateId));
+      
+      // Mostra modal de sucesso
+      setModalCandidateName(candidateName);
+      setModalCandidateId(candidateId);
+      setModalIsAlreadyFavorited(false);
+      setShowFavoriteModal(true);
+      
+    } catch (error: any) {
+      console.error('Erro ao favoritar candidato:', error);
+      
+      // Verifica se é erro de candidato já favoritado
+      const errorMessage = error.message || 'Erro ao favoritar candidato';
+      if (errorMessage.toLowerCase().includes('já está no banco') || 
+          errorMessage.toLowerCase().includes('já favoritado') ||
+          errorMessage.toLowerCase().includes('already')) {
+        setFavoritedCandidates(prev => new Set(prev).add(candidateId));
+        
+        // Mostra modal informando que já está favoritado
+        setModalCandidateName(candidateName);
+        setModalCandidateId(candidateId);
+        setModalIsAlreadyFavorited(true);
+        setShowFavoriteModal(true);
+      } else {
+        console.error('❌', errorMessage);
+        alert(`Erro: ${errorMessage}`);
+      }
+    } finally {
+      setFavoritingCandidate(null);
+    }
+  };
+
+  // Função para desfavoritar um candidato
+  const handleUnfavoriteCandidate = async (candidateId: string, candidateName: string) => {
+    try {
+      setFavoritingCandidate(candidateId);
+      
+      await talentBankService.unfavoriteCandidate(candidateId);
+      
+      // Remove o candidato da lista de favoritos
+      setFavoritedCandidates(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(candidateId);
+        return newSet;
+      });
+      
+      // Fecha o modal de favoritos
+      setShowFavoriteModal(false);
+      
+      // Mostra o modal de remoção
+      setUnfavoriteModalCandidateName(candidateName);
+      setShowUnfavoriteModal(true);
+      
+    } catch (error: any) {
+      console.error('Erro ao desfavoritar candidato:', error);
+      alert(`Erro ao remover candidato: ${error.message || 'Erro desconhecido'}`);
+    } finally {
+      setFavoritingCandidate(null);
     }
   };
 
@@ -259,7 +389,10 @@ const OpportunityCandidates = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredCandidates.map(item => (
+            {filteredCandidates.map(item => {
+              const isFavorited = favoritedCandidates.has(item.candidate.id);
+              
+              return (
               <div key={item.candidatureId} className="bg-dark-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border border-dark-700">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-4">
@@ -291,11 +424,44 @@ const OpportunityCandidates = () => {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
-                    <Calendar size={16} className="text-gray-400" />
-                    <span className="text-sm text-gray-400">
-                      Candidatura: {formatDate(item.candidatureDate)}
-                    </span>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} className="text-gray-400" />
+                      <span className="text-sm text-gray-400">
+                        Candidatura: {formatDate(item.candidatureDate)}
+                      </span>
+                    </div>
+                    
+                    {/* Botão de favoritar */}
+                    <button
+                      onClick={() => handleFavoriteCandidate(item.candidate.id, item.candidate.name)}
+                      disabled={favoritingCandidate === item.candidate.id}
+                      className={`relative p-2 rounded-full transition-all duration-300 transform hover:scale-105 ${
+                        isFavorited
+                          ? 'bg-yellow-500/20 border-2 border-yellow-500/50 shadow-lg shadow-yellow-500/25 scale-105 cursor-pointer hover:bg-yellow-500/30'
+                          : 'bg-gray-700 hover:bg-yellow-500 text-gray-300 hover:text-white hover:shadow-lg hover:shadow-yellow-500/25'
+                      } ${favoritingCandidate === item.candidate.id ? 'opacity-50 cursor-not-allowed animate-pulse' : ''}`}
+                      title={
+                        favoritingCandidate === item.candidate.id
+                          ? 'Adicionando ao Banco de Talentos...'
+                          : isFavorited 
+                            ? 'Clique para ver detalhes do favorito' 
+                            : 'Adicionar ao Banco de Talentos'
+                      }
+                    >
+                      {favoritingCandidate === item.candidate.id ? (
+                        <div className="w-[18px] h-[18px] flex items-center justify-center">
+                          <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                      ) : (
+                        <Star 
+                          size={18} 
+                          fill={isFavorited ? '#eab308' : 'none'} // yellow-500
+                          color={isFavorited ? '#eab308' : 'currentColor'}
+                          className="transition-all duration-200"
+                        />
+                      )}
+                    </button>
                   </div>
                 </div>
 
@@ -415,10 +581,27 @@ const OpportunityCandidates = () => {
                   </div>
                 )}
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>
+
+      {/* Modal de Favoritos */}
+      <FavoriteModal
+        isOpen={showFavoriteModal}
+        onClose={() => setShowFavoriteModal(false)}
+        candidateName={modalCandidateName}
+        isAlreadyFavorited={modalIsAlreadyFavorited}
+        onUnfavorite={() => handleUnfavoriteCandidate(modalCandidateId, modalCandidateName)}
+      />
+
+      {/* Modal de Remoção */}
+      <UnfavoriteModal
+        isOpen={showUnfavoriteModal}
+        onClose={() => setShowUnfavoriteModal(false)}
+        candidateName={unfavoriteModalCandidateName}
+      />
     </div>
   );
 };

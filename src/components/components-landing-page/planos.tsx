@@ -34,9 +34,12 @@ const planos: React.FC = () => {
                   <span>Relatórios mensais</span>
                 </li>
               </ul>
-              <button className="w-full px-6 py-3 rounded-full font-bold bg-white text-purple-700 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+                <button 
+                onClick={() => window.location.href = '/choiceScreen'}
+                className="w-full px-6 py-3 rounded-full font-bold bg-white text-purple-700 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
+                >
                 Começar Grátis
-              </button>
+                </button>
             </div>
             
             <div className="bg-gradient-to-r from-pink-600/20 to-purple-600/20 backdrop-blur-sm p-6 rounded-xl relative overflow-hidden border border-purple-500/30">

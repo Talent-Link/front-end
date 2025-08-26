@@ -4,13 +4,14 @@ import "react-toastify/dist/ReactToastify.css";
 
 // Pages - Landing Page
 import Header from "./components/components-landing-page/Header";
-import Hero from "./components/components-landing-page/telaInicial";
+import Hero from "./components/components-landing-page/hero";
 import Highlights from "./components/components-landing-page/Highlights";
-import Demo from "./components/components-landing-page/demo";
+// import Demo from "./components/components-landing-page/demo";
 import Features from "./components/components-landing-page/funcionalidades";
 import Comparison from "./components/components-landing-page/diferencial";
-import CallToAction from "./components/components-landing-page/planos";
+// import CallToAction from "./components/components-landing-page/planos";
 import Footer from "./components/components-landing-page/Footer";
+import VLibras from "./components/VLibras";
 
 // Pages - Candidato
 import LoginCandidato from "./pages/Candidato/loginCandidato";
@@ -55,12 +56,13 @@ function App() {
                 <main>
                   <Hero />
                   <Highlights />
-                  <Demo />
+                  {/* <Demo /> */}
                   <Features />
                   <Comparison />
-                  <CallToAction />
+                  {/* <CallToAction /> */}
                 </main>
                 <Footer />
+                <VLibras />
               </>
             }
           />

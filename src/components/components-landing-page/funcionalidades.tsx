@@ -12,7 +12,7 @@ const Feature: React.FC<FeatureProps> = ({ icon, title, description }) => {
     <div className="flex gap-4">
       <div className="flex-shrink-0 mt-1">
         <div className="w-12 h-12 bg-gradient-to-r from-pink-500/10 to-purple-600/10 rounded-lg flex items-center justify-center">
-          <div className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
+          <div className="text-pink-500">
             {icon}
           </div>
         </div>

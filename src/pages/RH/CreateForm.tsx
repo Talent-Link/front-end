@@ -11,7 +11,6 @@ export default function CreateForm() {
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -102,7 +101,7 @@ export default function CreateForm() {
 
       if (!res.ok) throw new Error("Erro ao criar formulário.");
 
-      setShowSuccessModal(true);
+      alert("Formulário criado com sucesso!");
       setFormTitle("");
       setFormDescription("");
       setQuestions([]);
@@ -364,39 +363,6 @@ export default function CreateForm() {
           </div>
         )}
       </div>
-
-      {/* Modal de Sucesso */}
-      {showSuccessModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-gradient-to-br from-dark-800 to-dark-900 border border-dark-600 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl transform animate-bounce-in">
-            <div className="text-center">
-              {/* Ícone de sucesso */}
-              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">✅</span>
-              </div>
-              
-              {/* Título */}
-              <h3 className="text-2xl font-bold text-white mb-2">
-                Formulário Criado!
-              </h3>
-              
-              {/* Descrição */}
-              <p className="text-dark-300 mb-6">
-                Seu formulário foi criado com sucesso e está pronto para ser usado nos processos seletivos.
-              </p>
-              
-              {/* Botão */}
-              <button
-                onClick={() => setShowSuccessModal(false)}
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105 shadow-lg"
-              >
-                <span className="mr-2">🎉</span>
-                Perfeito!
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

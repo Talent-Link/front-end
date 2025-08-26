@@ -1,27 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Menu, X, PenTool } from 'lucide-react';
 
 const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   return (
-    <header className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'}`}>
-      <div className="container mx-auto px-2 md:px-6"> {/* px-2 para menos padding lateral */}
+    <header className="fixed w-full z-50 bg-white py-2 transition-all duration-300">
+      <div className="container mx-auto px-2 md:px-6">
         <div className="flex justify-between items-center">
-          <div className="flex items-center mr-auto"> {/* mr-auto para colar à esquerda */}
+          <div className="flex items-center mr-auto">
             <PenTool className="h-8 w-8 mr-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600" />
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-600">TalentLink</span>
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-600">
+              TalentLink
+            </span>
           </div>
-          
+
           <div className="hidden md:flex items-center space-x-8">
             <a href="#features" className="font-medium text-gray-700 hover:text-purple-600 transition-colors">Caracteristicas</a>
             <a href="#Diferencial" className="font-medium text-gray-700 hover:text-purple-600 transition-colors">Diferencial</a>
@@ -33,47 +26,23 @@ const Header: React.FC = () => {
               </button>
             </a>
           </div>
-          
+
           <button
-            className="md:hidden ml-2 pr-2" // ml-2 para afastar do conteúdo, pr-2 para afastar da borda
+            className="md:hidden ml-2 pr-2"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
       </div>
-      
+
       {/* Mobile menu */}
       <div className={`md:hidden ${isOpen ? 'block' : 'hidden'} bg-white shadow-lg`}>
         <div className="px-4 py-5 space-y-5">
-          <a
-            href="#features"
-            className="block font-medium text-gray-700 hover:text-purple-600"
-            onClick={() => setIsOpen(false)}
-          >
-            Caracteristicas
-          </a>
-          <a
-            href="#Diferencial"
-            className="block font-medium text-gray-700 hover:text-purple-600"
-            onClick={() => setIsOpen(false)}
-          >
-            Diferencial
-          </a>
-          <a
-            href="#demo"
-            className="block font-medium text-gray-700 hover:text-purple-600"
-            onClick={() => setIsOpen(false)}
-          >
-            Demonstração
-          </a>
-          <a
-            href="#contact"
-            className="block font-medium text-gray-700 hover:text-purple-600"
-            onClick={() => setIsOpen(false)}
-          >
-            Contatos
-          </a>
+          <a href="#features" className="block font-medium text-gray-700 hover:text-purple-600" onClick={() => setIsOpen(false)}>Caracteristicas</a>
+          <a href="#Diferencial" className="block font-medium text-gray-700 hover:text-purple-600" onClick={() => setIsOpen(false)}>Diferencial</a>
+          <a href="#demo" className="block font-medium text-gray-700 hover:text-purple-600" onClick={() => setIsOpen(false)}>Demonstração</a>
+          <a href="#contact" className="block font-medium text-gray-700 hover:text-purple-600" onClick={() => setIsOpen(false)}>Contatos</a>
           <a href="/ChoiceScreen" className="block" onClick={() => setIsOpen(false)}>
             <button className="w-full px-5 py-2 rounded-full font-medium bg-gradient-to-r from-pink-500 to-purple-600 text-white">
               Entrar
